@@ -1,0 +1,296 @@
+{
+	"organizationId": "b657c46c-f88d-414a-8ec7-a2f446fc1e12",
+	"conversationId": "4801fdff-07f1-496e-b03b-61d46ea3a754",
+	"communicationId": "2d484a2c-2ef3-497c-9144-255bf1f2624e",
+	"transcripts": [{
+		"transcriptId": "007cff27-d4eb-477b-9488-2ce388ccc28a",
+		"language": "en-US",
+		"programId": "6b6321d0-3c93-417d-b372-27c10239457c",
+		"engineId": "r2d2",
+		"startTime": 1619441069316,
+		"duration": {
+			"milliseconds": 6885
+		},
+		"phrases": [{
+				"text": "you are treating me well",
+				"stability": 1,
+				"startTimeMs": 1619441069316,
+				"duration": {
+					"milliseconds": 1284
+				},
+				"words": [{
+						"word": "you",
+						"confidence": 0.99,
+						"startTimeMs": 1619441069316,
+						"duration": {
+							"milliseconds": 59
+						}
+					},
+					{
+						"word": "are",
+						"confidence": 0.976,
+						"startTimeMs": 1619441069731,
+						"duration": {
+							"milliseconds": 79
+						}
+					},
+					{
+						"word": "treating",
+						"confidence": 0.991,
+						"startTimeMs": 1619441069948,
+						"duration": {
+							"milliseconds": 237
+						}
+					},
+					{
+						"word": "me",
+						"confidence": 0.987,
+						"startTimeMs": 1619441070322,
+						"duration": {
+							"milliseconds": 40
+						}
+					},
+					{
+						"word": "well",
+						"confidence": 0.99,
+						"startTimeMs": 1619441070462,
+						"duration": {
+							"milliseconds": 138
+						}
+					}
+				],
+				"alternatives": [],
+				"participantPurpose": "external"
+			},
+			{
+				"text": "thank you very very much",
+				"stability": 1,
+				"startTimeMs": 1619441071017,
+				"duration": {
+					"milliseconds": 1364
+				},
+				"words": [{
+						"word": "thank",
+						"confidence": 0.994,
+						"startTimeMs": 1619441071017,
+						"duration": {
+							"milliseconds": 99
+						}
+					},
+					{
+						"word": "you",
+						"confidence": 0.823,
+						"startTimeMs": 1619441071472,
+						"duration": {
+							"milliseconds": 59
+						}
+					},
+					{
+						"word": "very",
+						"confidence": 0.984,
+						"startTimeMs": 1619441071729,
+						"duration": {
+							"milliseconds": 158
+						}
+					},
+					{
+						"word": "very",
+						"confidence": 0.915,
+						"startTimeMs": 1619441072045,
+						"duration": {
+							"milliseconds": 138
+						}
+					},
+					{
+						"word": "much",
+						"confidence": 0.967,
+						"startTimeMs": 1619441072243,
+						"duration": {
+							"milliseconds": 138
+						}
+					}
+				],
+				"alternatives": [],
+				"participantPurpose": "external"
+			},
+			{
+				"text": "thank you",
+				"stability": 1,
+				"startTimeMs": 1619441073034,
+				"duration": {
+					"milliseconds": 528
+				},
+				"words": [{
+						"word": "thank",
+						"confidence": 0.961,
+						"startTimeMs": 1619441073034,
+						"duration": {
+							"milliseconds": 98
+						}
+					},
+					{
+						"word": "you",
+						"confidence": 0.92,
+						"startTimeMs": 1619441073484,
+						"duration": {
+							"milliseconds": 78
+						}
+					}
+				],
+				"alternatives": [],
+				"participantPurpose": "internal"
+			},
+			{
+				"text": "have a nice day",
+				"stability": 1,
+				"startTimeMs": 1619441075295,
+				"duration": {
+					"milliseconds": 906
+				},
+				"words": [{
+						"word": "have",
+						"confidence": 0.995,
+						"startTimeMs": 1619441075295,
+						"duration": {
+							"milliseconds": 79
+						}
+					},
+					{
+						"word": "a",
+						"confidence": 0.987,
+						"startTimeMs": 1619441075748,
+						"duration": {
+							"milliseconds": 20
+						}
+					},
+					{
+						"word": "nice",
+						"confidence": 0.988,
+						"startTimeMs": 1619441075866,
+						"duration": {
+							"milliseconds": 138
+						}
+					},
+					{
+						"word": "day",
+						"confidence": 0.999,
+						"startTimeMs": 1619441076103,
+						"duration": {
+							"milliseconds": 98
+						}
+					}
+				],
+				"alternatives": [],
+				"participantPurpose": "external"
+			}
+		],
+		"analytics": {
+			"sentiment": [{
+					"participant": "external",
+					"phrase": "you are treating me well",
+					"startTimeMs": 1619441069316,
+					"duration": {
+						"milliseconds": 1284
+					},
+					"sentiment": 0.7257699966430664,
+					"phraseIndex": 4
+				},
+				{
+					"participant": "external",
+					"phrase": "thank you very very much",
+					"startTimeMs": 1619441071017,
+					"duration": {
+						"milliseconds": 1364
+					},
+					"sentiment": 1,
+					"phraseIndex": 5
+				},
+				{
+					"participant": "external",
+					"phrase": "have a nice day",
+					"startTimeMs": 1619441075295,
+					"duration": {
+						"milliseconds": 906
+					},
+					"sentiment": 0.9998900294303894,
+					"phraseIndex": 7
+				}
+			],
+			"acoustics": [{
+					"eventType": "voice",
+					"offsetMs": 0,
+					"startTimeMs": 1619441069316,
+					"durationMs": 1163,
+					"participant": "external"
+				},
+				{
+					"eventType": "voice",
+					"offsetMs": 1163,
+					"startTimeMs": 1619441070799,
+					"durationMs": 1500,
+					"participant": "external"
+				},
+				{
+					"eventType": "voice",
+					"offsetMs": 2663,
+					"startTimeMs": 1619441072819,
+					"durationMs": 740,
+					"participant": "external"
+				},
+				{
+					"eventType": "voice",
+					"offsetMs": 3403,
+					"startTimeMs": 1619441075019,
+					"durationMs": 1120,
+					"participant": "external"
+				},
+				{
+					"eventType": "acd",
+					"offsetMs": 39,
+					"startTimeMs": 1619441069355,
+					"durationMs": 379,
+					"participant": "internal"
+				}
+			]
+		}
+	}],
+	"participants": [{
+			"participantPurpose": "customer",
+			"initialDirection": "inbound",
+			"queueId": "ed7233c8-9785-4891-9770-3ff7c390ebbf",
+			"divisionId": "cf9b7a45-a9c1-458f-8371-2ef47e8aafd4",
+			"ani": "tel:+16198486188",
+			"dnis": "sip:ed7233c8-9785-4891-9770-3ff7c390ebbf@10.27.84.29:8140;transport=tcp",
+			"startTimeMs": 1619441069196,
+			"endTimeMs": 1619441076371
+		},
+		{
+			"participantPurpose": "acd",
+			"initialDirection": "inbound",
+			"queueId": "ed7233c8-9785-4891-9770-3ff7c390ebbf",
+			"divisionId": "cf9b7a45-a9c1-458f-8371-2ef47e8aafd4",
+			"ani": "tel:+16198486188",
+			"dnis": "sip:ed7233c8-9785-4891-9770-3ff7c390ebbf@10.27.84.29:8140;transport=tcp",
+			"startTimeMs": 1619441069355,
+			"endTimeMs": 1619441069734
+		},
+		{
+			"participantPurpose": "agent",
+			"userId": "e8b5dcdd-cb3c-48af-b2fe-b73089f3e83b",
+			"initialDirection": "inbound",
+			"queueId": "ed7233c8-9785-4891-9770-3ff7c390ebbf",
+			"divisionId": "cf9b7a45-a9c1-458f-8371-2ef47e8aafd4",
+			"ani": "tel:+16198486188",
+			"dnis": "sip:ed7233c8-9785-4891-9770-3ff7c390ebbf@10.27.84.29:8140;transport=tcp",
+			"startTimeMs": 1619441069735,
+			"endTimeMs": 1619441076370
+		}
+	],
+	"uri": "/transcript/v1/organizations/b657c46c-f88d-414a-8ec7-a2f446fc1e12/conversations/4801fdff-07f1-496e-b03b-61d46ea3a754/communications/2d484a2c-2ef3-497c-9144-255bf1f2624e",
+	"startTime": 1619441069316,
+	"duration": {
+		"milliseconds": 6885
+	},
+	"mediaType": "call",
+	"conversationStartTime": 1619441069196
+}

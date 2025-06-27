@@ -1,0 +1,390 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "Transcripts.json",
+	"title": "Transcript Response Format",
+	"description": "This is the schema for the collection of transcripts associated with a communication.",
+	"type": "object",
+	"properties": {
+		"organizationId": {
+			"type": "string"
+		},
+		"conversationId": {
+			"type": "string"
+		},
+		"communicationId": {
+			"type": "string"
+		},
+		"mediaType": {
+			"type": "string"
+		},
+		"conversationStartTime": {
+			"type": "number"
+		},
+		"startTime": {
+			"type": "number"
+		},
+		"duration": {
+			"$ref": "#/definitions/Duration"
+		},
+		"transcripts": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Transcript"
+			},
+			"minItems": 1
+		},
+		"participants": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Participant"
+			},
+			"minItems": 1
+		},
+		"uri": {
+			"type": "string",
+			"format": "uri"
+		}
+	},
+	"additionalProperties": false,
+	"definitions": {
+		"Transcript": {
+			"type": "object",
+			"properties": {
+				"transcriptId": {
+					"type": "string"
+				},
+				"language": {
+					"type": "string"
+				},
+				"programId": {
+					"type": "string"
+				},
+				"engineId": {
+					"type": "string"
+				},
+				"startTime": {
+					"type": "number"
+				},
+				"phrases": {
+					"$ref": "#/definitions/Phrases"
+				},
+				"duration": {
+					"$ref": "#/definitions/Duration"
+				},
+				"subject": {
+					"type": "string"
+				},
+				"messageType": {
+					"type": "string"
+				},
+				"analytics": {
+					"type": "object",
+					"properties": {
+						"sentiment": {
+							"$ref": "#/definitions/Sentiment"
+						},
+						"topics": {
+							"$ref": "#/definitions/Topics"
+						},
+						"acoustic": {
+							"$ref": "#/definitions/Acoustic"
+						}
+					}
+				}
+			}
+		},
+		"Phrases": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"participantPurpose": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					},
+					"stability": {
+						"type": "number"
+					},
+					"confidence": {
+						"type": "number"
+					},
+					"offset": {
+						"$ref": "#/definitions/Offset"
+					},
+					"startTimeMs": {
+						"type": "number"
+					},
+					"duration": {
+						"$ref": "#/definitions/Duration"
+					},
+					"words": {
+						"$ref": "#/definitions/Words"
+					},
+					"alternatives": {
+						"$ref": "#/definitions/Alternatives"
+					},
+					"type": {
+						"type": "string"
+					}
+				}
+			},
+			"minItems": 1
+		},
+		"Alternatives": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"text": {
+						"type": "string"
+					},
+					"confidence": {
+						"type": "number"
+					},
+					"offset": {
+						"$ref": "#/definitions/Offset"
+					},
+					"startTimeMs": {
+						"type": "number"
+					},
+					"duration": {
+						"$ref": "#/definitions/Duration"
+					},
+					"words": {
+						"$ref": "#/definitions/Words"
+					}
+				}
+			},
+			"minItems": 0
+		},
+		"Words": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"word": {
+						"type": "string"
+					},
+					"confidence": {
+						"type": "number"
+					},
+					"offset": {
+						"$ref": "#/definitions/Offset"
+					},
+					"startTimeMs": {
+						"type": "number"
+					},
+					"duration": {
+						"$ref": "#/definitions/Duration"
+					}
+				}
+			},
+			"minItems": 1
+		},
+		"Offset": {
+			"type": "object",
+			"properties": {
+				"words": {
+					"type": "number"
+				},
+				"chars": {
+					"type": "number"
+				}
+			},
+			"anyOf": [
+				{
+					"required": [
+						"words"
+					]
+				},
+				{
+					"required": [
+						"chars"
+					]
+				}
+			]
+		},
+		"Duration": {
+			"type": "object",
+			"properties": {
+				"milliseconds": {
+					"type": "number"
+				},
+				"words": {
+					"type": "number"
+				},
+				"chars": {
+					"type": "number"
+				}
+			},
+			"anyOf": [
+				{
+					"required": [
+						"milliseconds"
+					]
+				},
+				{
+					"required": [
+						"words"
+					]
+				},
+				{
+					"required": [
+						"chars"
+					]
+				}
+			]
+		},
+		"Sentiment": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"participant": {
+						"type": "string"
+					},
+					"phrase": {
+						"type": "string"
+					},
+					"offset": {
+						"$ref": "#/definitions/Offset"
+					},
+					"startTimeMs": {
+						"type": "number"
+					},
+					"duration": {
+						"$ref": "#/definitions/Duration"
+					},
+					"sentiment": {
+						"type": "number"
+					},
+					"phraseIndex": {
+						"type": "number"
+					},
+					"type": {
+						"type": "string"
+					}
+				}
+			},
+			"minItems": 1
+		},
+		"Topics": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"participant": {
+						"type": "string"
+					},
+					"topicId": {
+						"type": "string"
+					},
+					"topicName": {
+						"type": "string"
+					},
+					"topicPhrase": {
+						"type": "string"
+					},
+					"transcriptPhrase": {
+						"type": "string"
+					},
+					"confidence": {
+						"type": "number"
+					},
+					"offset": {
+						"$ref": "#/definitions/Offset"
+					},
+					"startTimeMs": {
+						"type": "number"
+					},
+					"duration": {
+						"$ref": "#/definitions/Duration"
+					},
+					"type": {
+						"type": "string"
+					}
+				}
+			},
+			"minItems": 1
+		},
+		"Acoustic": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"eventType": {
+						"type": "string"
+					},
+					"offsetMs": {
+						"type": "number"
+					},
+					"startTimeMs": {
+						"type": "number"
+					},
+					"durationMs": {
+						"type": "number"
+					},
+					"participant": {
+						"type": "string"
+					}
+				}
+			},
+			"minItems": 1
+		},
+		"Participant": {
+			"type": "object",
+			"properties": {
+				"participantPurpose": {
+					"type": "string"
+				},
+				"userId": {
+					"type": "string"
+				},
+				"teamId": {
+					"type": "string"
+				},
+				"initialDirection": {
+					"type": "string"
+				},
+				"messageType": {
+					"type": "string"
+				},
+				"queueId": {
+					"type": "string"
+				},
+				"flowId": {
+					"type": "string"
+				},
+				"flowVersion": {
+					"type": "string"
+				},
+				"divisionId": {
+					"type": "string"
+				},
+				"ani": {
+					"type": "string"
+				},
+				"dnis": {
+					"type": "string"
+				},
+				"to": {
+					"type": "string"
+				},
+				"from": {
+					"type": "string"
+				},
+				"startTimeMs": {
+					"type": "number"
+				},
+				"endTimeMs": {
+					"type": "number"
+				}
+			}
+		}
+	},
+	"required": [
+		"transcripts"
+		]
+}

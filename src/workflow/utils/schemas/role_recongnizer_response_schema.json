@@ -1,0 +1,30 @@
+{
+    "type": "object",
+    "properties": {
+        "predictions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "AGENT",
+                            "CUSTOMER"
+                        ]
+                    },
+                    "uid": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "role",
+                    "uid"
+                ]
+            }
+        }
+    },
+    "required": [
+        "predictions"
+    ]
+}

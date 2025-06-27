@@ -1,0 +1,64 @@
+{
+    "entries": [
+      {
+        "role": "AGENT",
+        "start_timestamp_usec": 1704078000000000,
+        "text": "Okay.",
+        "user_id": 1
+      },
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1704078000000000,
+        "text": "Just hello. My name is Peter and help.",
+        "user_id": 2
+      },
+      {
+        "role": "AGENT",
+        "start_timestamp_usec": 1704078004000000,
+        "text": "Hello. Peter, how can I help you?",
+        "user_id": 1
+      },
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1704078007000000,
+        "text": "I need to cancel. I want to cancel my plan subscription.",
+        "user_id": 2
+      },
+      {
+        "role": "AGENT",
+        "start_timestamp_usec": 1704078011000000,
+        "text": "That sounds very bad. I can offer a 20% discount to make you stay with us.",
+        "user_id": 1
+      },
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1704078015000000,
+        "text": "That sounds interesting. Thank you accept.",
+        "user_id": 2
+      },
+      {
+        "role": "AGENT",
+        "start_timestamp_usec": 1704078018000000,
+        "text": "Alright, I made all the changes to the account and now these discounts applied.",
+        "user_id": 1
+      },
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1704078022000000,
+        "text": "Awesome. Thank you so much.",
+        "user_id": 2
+      },
+      {
+        "role": "AGENT",
+        "start_timestamp_usec": 1704078024000000,
+        "text": "No worries. I will send you all the details later today and call you back next week to check up on you.",
+        "user_id": 1
+      },
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1704078030000000,
+        "text": "Thank you. Sir. Have a nice evening.",
+        "user_id": 2
+      }
+    ]
+  }

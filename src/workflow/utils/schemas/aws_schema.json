@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "Channel": {
+            "type": "string"
+        },
+        "Transcript": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "ParticipantId": {
+                            "type": "string"
+                        },
+                        "Id": {
+                            "type": "string"
+                        },
+                        "Content": {
+                            "type": "string"
+                        },
+                        "BeginOffsetMillis": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "ParticipantId",
+                        "Id",
+                        "Content",
+                        "BeginOffsetMillis"
+                    ]
+                }
+            ]
+        }
+    },
+    "required": [
+        "Transcript",
+        "Channel"
+    ]
+}

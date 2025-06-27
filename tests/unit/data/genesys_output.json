@@ -1,0 +1,28 @@
+{
+    "entries": [
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1619441069316000,
+        "text": "you are treating me well",
+        "user_id": 2
+      },
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1619441071017000,
+        "text": "thank you very very much",
+        "user_id": 2
+      },
+      {
+        "role": "AGENT",
+        "start_timestamp_usec": 1619441073034000,
+        "text": "thank you",
+        "user_id": 1
+      },
+      {
+        "role": "CUSTOMER",
+        "start_timestamp_usec": 1619441075295000,
+        "text": "have a nice day",
+        "user_id": 2
+      }
+    ]
+  }

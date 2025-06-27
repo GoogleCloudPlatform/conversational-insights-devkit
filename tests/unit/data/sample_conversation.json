@@ -1,0 +1,64 @@
+{
+    "entries": [
+        {
+            "uid": 1,
+            "text": "This is SkyHigh Airlines. Can I have your booking reference please?",
+            "role": "AGENT",
+            "user_id": 1
+        },
+        {
+            "uid": 2,
+            "text": "It's JK45L2. I need to change my flight, it's ridiculous that they cancelled my original flight without any notice!",
+            "role": "CUSTOMER",
+            "user_id": 2
+        },
+        {
+            "uid": 3,
+            "text": "Okay, let me take a look... Yes, I see your flight was cancelled due to unforeseen operational reasons. I understand this is frustrating. What would you like to do?",
+            "role": "AGENT",
+            "user_id": 1
+        },
+        {
+            "uid": 4,
+            "text": "Unforeseen? It's a sunny day! Look, I need to be in Chicago by tomorrow afternoon, what are my options?",
+            "role": "CUSTOMER",
+            "user_id": 2
+        },
+        {
+            "uid": 5,
+            "text": "Sir, I understand your frustration.  We have a flight leaving this evening at 8 PM with a few seats left, or there's a flight tomorrow morning at 6 AM.",
+            "role": "AGENT",
+            "user_id": 1
+        },
+        {
+            "uid": 6,
+            "text": "8 PM is too late! That's ridiculous. Fine, 6 AM it is. But I am not happy about this.",
+            "role": "CUSTOMER",
+            "user_id": 2
+        },
+        {
+            "uid": 7,
+            "text": "Alright, I've rebooked you on the 6 AM flight. Do you have any baggage to check in?",
+            "role": "AGENT",
+            "user_id": 1
+        },
+        {
+            "uid": 8,
+            "text": "Yes, one checked bag.",
+            "role": "CUSTOMER",
+            "user_id": 2
+        },
+        {
+            "uid": 9,
+            "text": "Okay, all set. You'll receive an updated itinerary via email. Is there anything else I can assist you with?",
+            "role": "AGENT",
+            "user_id": 1
+        },
+        {
+            "uid": 10,
+            "text": "No, that's it.",
+            "role": "CUSTOMER",
+            "user_id": 2
+        }
+    ]
+}
