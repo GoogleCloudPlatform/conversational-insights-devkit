@@ -217,3 +217,40 @@ class V2:
             recognizer=recognizer_path, uri=audio_file_path
         )
         return operation
+def batch_recognize_audio(
+        self,
+        audio_gcs_uris: List[str],
+        output_gcs_uri: str,
+        recognizer_path: Optional[str] = None,
+    ) -> types_v2.BatchRecognizeResponse:
+        """
+        Performs asynchronous batch recognition for multiple audio files (V2 API).
+        Suitable for longer audio files or multiple files.
+
+        Args:
+            audio_gcs_uris: A list of GCS URIs of the audio files to transcribe.
+            output_gcs_uri: The GCS URI of a directory where the transcription results
+                            will be written. e.g., "gs://your-bucket/transcriptions_output/"
+            recognizer_path: Optional. The full resource path to an existing recognizer.
+                             If not provided, a new one will be created based on V2 class settings.
+
+        Returns:
+            A BatchRecognizeResponse object. You'll need to poll the operation
+            to get the final results.
+        """
+        if not recognizer_path:
+            recognizer_path = self.create_recognizer()
+
+        if not recognizer_path.startswith("projects/"):
+             recognizer_path = f"projects/{self.project_id}/locations/{self.location}/recognizers/{recognizer_path}"
+
+        input_files = [types_v2.BatchRecognizeFileMetadata(uri=uri) for uri in audio_gcs_uris]
+
+        request = types_v2.BatchRecognizeRequest(
+            recognizer=recognizer_path,
+            files=input_files, # Use the corrected list
+            recognition_output_config=types_v2.RecognitionOutputConfig(
+                gcs_output_config=types_v2.GcsOutputConfig(uri=output_gcs_uri)
+            )
+        )
+        return operation.result()
