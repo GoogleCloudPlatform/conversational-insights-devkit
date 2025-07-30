@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     https://www.apache.org/licenses/LICENSE-2.0
+#        https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,7 @@
 
 import uuid
 import enum
-from typing import Optional
+from typing import Optional, List
 from google.cloud import speech_v1
 from google.cloud.speech_v1 import types as types_v1
 
@@ -32,7 +32,7 @@ class AudioChannels(enum.IntEnum):
     STEREO = 2
 
 class Encodings(enum.Enum):
-    "Simplification of the encodings for end users"
+    "Simplification of the encodings for end users (primarily for V1 API compatibility)"
     LINEAR16 = types_v1.RecognitionConfig.AudioEncoding.LINEAR16.value
     FLAC = types_v1.RecognitionConfig.AudioEncoding.FLAC.value
     MULAW = types_v1.RecognitionConfig.AudioEncoding.MULAW.value
@@ -96,7 +96,7 @@ class V1:
         else:
             channel_count = audio_type.value
 
-        config = speech_v1.RecognitionConfig(
+        config = types_v1.RecognitionConfig(
             audio_channel_count=channel_count,
             sample_rate_hertz=sample_rate_hertz,
             language_code=language,
@@ -107,7 +107,7 @@ class V1:
         )
 
         if channels == 1:
-            config.diarization_config = speech_v1.SpeakerDiarizationConfig(
+            config.diarization_config = types_v1.SpeakerDiarizationConfig(
                 enable_speaker_diarization=True,
                 min_speaker_count=1,
                 max_speaker_count=2,
@@ -134,6 +134,15 @@ class V2:
 
         self.auth = auth or base.Auth()
         self.config = config or base.Config()
+        self.project_id = project_id
+        self.diarization = diarization
+        self.auto_decoding = auto_decoding
+        self.model = model
+        self.location = location if location else "global" # Default to global if not provided
+        self.translation = translation
+        self.language_code = language_code
+        self.translate_languange = translate_languange
+
 
         self.client = speech_v2.SpeechClient(
             client_options=self.config.set_speech_endpoint()
@@ -157,12 +166,14 @@ class V2:
                     enable_word_confidence=True,
                     enable_automatic_punctuation=True,
                     enable_spoken_punctuation=True,
-                    enable_spoken_emojis=True,
+                    enable_spoken_emojis=False,
                 ),
             ),
         )
 
         if self.diarization:
+            # When diarization is enabled, it overrides the 'features' field.
+            # So, ensure all desired features are included when diarization_config is set.
             recognizer.default_recognition_config.features = types_v2.RecognitionFeatures(
                 profanity_filter=True,
                 enable_word_time_offsets=True,
@@ -193,7 +204,7 @@ class V2:
         self,
         name: str = "default-insights-recognizer"
     ) -> str:
-        """Creates a regocnizer with settings"""
+        """Creates a recognizer with settings"""
 
         operation = self.client.create_recognizer(
             parent=f"projects/{self.project_id}/locations/{self.location}",
@@ -205,19 +216,29 @@ class V2:
 
     def create_transcription(
         self,
-        audio_file_path: str,
+        audio_gcs_uri: str,
         recognizer_path: Optional[str] = None,
     ) -> types_v2.RecognizeResponse:
-        """Creates a transcript based from audio files"""
-
+        """
+        Creates a synchronous transcript based from a single audio file (V2 API).
+        Suitable for shorter audio files.
+        """
         if not recognizer_path:
             recognizer_path = self.create_recognizer()
 
-        operation = self.client.recognize(
-            recognizer=recognizer_path, uri=audio_file_path
+        if not recognizer_path.startswith("projects/"):
+             recognizer_path = f"projects/{self.project_id}/locations/{self.location}/recognizers/{recognizer_path}"
+
+        request = types_v2.RecognizeRequest(
+            recognizer=recognizer_path,
+            uri=audio_gcs_uri
         )
-        return operation
-def batch_recognize_audio(
+
+        print(f"Performing synchronous recognition for {audio_gcs_uri} using recognizer: {recognizer_path}")
+        response = self.client.recognize(request=request)
+        return response
+
+    def batch_recognize_audio(
         self,
         audio_gcs_uris: List[str],
         output_gcs_uri: str,
@@ -253,4 +274,9 @@ def batch_recognize_audio(
                 gcs_output_config=types_v2.GcsOutputConfig(uri=output_gcs_uri)
             )
         )
-        return operation.result()
+
+        print(f"Starting batch recognition for {len(audio_gcs_uris)} files using recognizer: {recognizer_path}")
+        print(f"Results will be written to: {output_gcs_uri}")
+        operation = self.client.batch_recognize(request=request)
+        print("Batch recognition operation initiated. Polling for results...")
+        return operation.result() # This will block until the operation is complete

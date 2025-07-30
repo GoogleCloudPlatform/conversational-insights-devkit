@@ -184,7 +184,7 @@ class Speech:
             self,
             recognizer_response: types_v2.cloud_speech.RecognizeResponse
         ) -> str:
-        """Converts Speech v1 return to str(json)"""
+        """Converts Speech v2 return to str(json)"""
         dict_response = json.loads(type(recognizer_response).to_json(recognizer_response))
         return json.dumps(dict_response)
     
@@ -192,10 +192,10 @@ class Speech:
             self,
             recognizer_response: types_v2.cloud_speech.RecognizeResponse
         ) -> list[str]:
-        """Converts Speech v1 return to list[str]"""
+        """Converts Speech v2 return to list[str]"""
         dict_response = json.loads(type(recognizer_response).to_json(recognizer_response))
         return dict_response
-    
+
     def v2_json_to_dict(
             self,
             v2_json: dict,
@@ -212,3 +212,4 @@ class Speech:
                 rr_format_data["results"].append({"uid":uid,"text":alternative["transcript"]})
                 uid += 1
         return rr_format_data
+
