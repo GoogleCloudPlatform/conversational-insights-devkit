@@ -27,17 +27,21 @@ from google.cloud.speech_v2 import types as types_v2
 
 _MONO_SHORT_AUDIO_LOCATION = 'gs://audios-tmp-prober/mono-audio-1-short.wav'
 _MONO_AUDIO_LOCATION = 'gs://audios-tmp-prober/mono-audio-1.wav'
+_MONO_LONG_AUDIO_LOCATION = 'devkit-long-audio'
 _SHORT_AUDIO_LOCATION = 'gs://audios-tmp-prober/stereo-audio-1-short.wav' 
 _AUDIO_LOCATION = 'gs://audios-tmp-prober/stereo-audio-1.wav'
 
 _TRANSCRIPTS_BULK_PATH = 'gs://transcripts-tmp-prober/'
 _METADATA_BULK_PATH = 'gs://metadata-tmp-prober/'
 _TRANSCRIPT = 'gs://transcripts-tmp-prober/conversation-15.json'
+_LONG_STT_AUDIO_TRANSCRIPT_PATH = '"gs://devkit/stt_output/'
+_COMBINED_ROLE_REC_OUTPUT_BASE_PATH = "gs://devkit/roles-recognized/"
 
 _TMP_PROBER_BUCKET = 'upload-tmp-prober'
 _PROBER_PROJECT_ID = 'insights-python-tooling-prober'
 _LOCATION = 'us-central1'
 _PARENT = f'projects/{_PROBER_PROJECT_ID}/locations/{_LOCATION}'
+
 
 def reset_insights_settings():
     """This method will reset some insights configurations and make a default configuration
@@ -203,6 +207,48 @@ def test_ingest_audio_with_role_recognition():
     
     assert type(operation) is Operation
 
+
+# funtion for trancribing and role recognizing long audio files
+def transcribe_role_recognize_long_audio():
+
+    AUDIO_GCS_URIS = storage.list_gcs_files(_MONO_LONG_AUDIO_LOCATION, SOURCE_BUCKET_PREFIX, file_extension=".wav")
+
+    first_wav_file_basename = AUDIO_GCS_URIS[0].split('/')[-1] 
+    final_combined_json_filename = first_wav_file_basename.rsplit('.', 1)[0] + ".json"
+    
+    COMBINED_ROLE_REC_OUTPUT_GCS_URI = f"{COMBINED_ROLE_REC_OUTPUT_BASE_PATH}{final_combined_json_filename}"
+    
+    speech_v2_client = speech.V2( # Corrected to use speech.V2 from imports
+        project_id=PROJECT_ID,
+        diarization=False, # This is usually true for role recognition scenarios
+        language_code="es-MX",
+        model="telephony",
+    )
+    
+    batch_response = speech_v2_client.batch_recognize_audio(
+        audio_gcs_uris=AUDIO_GCS_URIS,
+        output_gcs_uri=_LONG_STT_AUDIO_TRANSCRIPT_PATH 
+    )
+    
+    role_recognizer = rr.RoleRecognizer(model_name="gemini-2.5-flash-lite")
+
+    stt_output_prefix = _LONG_STT_AUDIO_TRANSCRIPT_PATH.replace(f"gs://{_MONO_LONG_AUDIO_LOCATION}/", "")
+    stt_output_files = storage.list_gcs_files(_MONO_LONG_AUDIO_LOCATION, stt_output_prefix, file_extension=".json")
+
+    ft = format.Speech()
+    for stt_json_uri in stt_output_files:
+        transcript_data = storage.download_gcs_json_to_memory(stt_json_uri)
+        stt_results = ft.v2_json_to_dict(transcript_data)
+        roles = role_recognizer.predict_roles(conversation=stt_results)
+        combined_transcript = role_recognizer.combine(transcript_data, roles) # Pass original transcript_data
+        storage.upload_blob(
+            file_name=COMBINED_ROLE_REC_OUTPUT_GCS_URI.split('/')[-1], # Extract just the filename
+            data=json.dumps(combined_transcript),
+            bucket_name=COMBINED_ROLE_REC_OUTPUT_GCS_URI.split('/')[2] # Extract bucket name
+        )
+        print(f"Processed and uploaded roles for {stt_json_uri} to {COMBINED_ROLE_REC_OUTPUT_GCS_URI}")
+        
+   
 ## Test ingesting aws transcript 
 def test_ingest_vendor_transcript():
     # reset_insights_settings()
