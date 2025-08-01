@@ -31,7 +31,7 @@ class RoleRecognizer:
     _TOP_P = 0.95
     _TOP_K = 40
     _DEFAULT_PROMPT = """
-        You are an expert in identifying roles within a conversation transcript.
+        You are a multilingual role recognition expert in identifying roles within a conversation transcript.
 
         Task:
         Identify the role (AGENT or CUSTOMER) of each utterance in the given conversation.
