@@ -15,6 +15,7 @@
 """A class for all Insigths things related"""
 
 import enum
+from strenum import StrEnum
 from random import randint
 from typing import Dict, MutableMapping, Optional
 from google.longrunning.operations_pb2 import Operations
@@ -24,16 +25,16 @@ from google.cloud import contact_center_insights_v1
 from google.cloud.contact_center_insights_v1 import types
 from src.core import base
 
-class Masks(enum.StrEnum):
-    """Enum for supported masks."""
-    ANALYSIS = "analysisConfig"
-    TTL = "conversationTtl"
-    PUBSUB = "pubsubNotificationSettings"
-    LANGUAGE = "languageCode"
-    SPEECH_RECOGNIZER = "speechConfig.speechRecognizer"
-    DLP = "redactionConfig.inspectTemplate,redactionConfig.deidentifyTemplate"
+class Masks(StrEnum):
+  """Enum for supported masks."""
+  ANALYSIS = "analysisConfig"
+  TTL = "conversationTtl"
+  PUBSUB = "pubsubNotificationSettings"
+  LANGUAGE = "languageCode"
+  SPEECH_RECOGNIZER = "speechConfig.speechRecognizer"
+  DLP = "redactionConfig.inspectTemplate,redactionConfig.deidentifyTemplate"
 
-class Annotators(enum.StrEnum):
+class Annotators(StrEnum):
     """Enum for supported annotators"""
     QAI = "QAI"
     INSIGHTS = "INSIGHTS"

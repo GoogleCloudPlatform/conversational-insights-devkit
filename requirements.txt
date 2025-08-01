@@ -24,3 +24,4 @@ pytest-cov
 mypy
 vertexai
 jsonschema
+strenum
