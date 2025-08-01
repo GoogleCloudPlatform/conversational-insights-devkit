@@ -16,7 +16,7 @@
 
 import uuid
 import enum
-from typing import Optional
+from typing import List, Optional
 from google.cloud import speech_v1
 from google.cloud.speech_v1 import types as types_v1
 
@@ -128,12 +128,22 @@ class V2:
         auth: Optional[base.Auth] = None,
         translation: Optional[bool] = False,
         config: Optional[base.Config] = None,
+        tmp_storage: Optional[str] = None,
         language_code: Optional[str] = "en-US",
         translate_languange: Optional[str] = None,
     ):
 
         self.auth = auth or base.Auth()
         self.config = config or base.Config()
+        self.project_id = project_id
+        self.diarization = diarization
+        self.auto_decoding = auto_decoding
+        self.model = model
+        self.location = location
+        self.translation = translation
+        self.tmp_storage = tmp_storage
+        self.language_code = language_code
+        self.translate_languange = translate_languange
 
         self.client = speech_v2.SpeechClient(
             client_options=self.config.set_speech_endpoint()
@@ -213,7 +223,14 @@ class V2:
         if not recognizer_path:
             recognizer_path = self.create_recognizer()
 
-        operation = self.client.recognize(
-            recognizer=recognizer_path, uri=audio_file_path
+        operation = self.client.batch_recognize(
+            request = types_v2.BatchRecognizeRequest(
+                recognizer=recognizer_path,
+                files=[types_v2.BatchRecognizeFileMetadata(uri=audio_file_path)],
+                recognition_output_config=types_v2.RecognitionOutputConfig(
+                    gcs_output_config=types_v2.GcsOutputConfig(uri=self.tmp_storage),
+                )
+
+            )
         )
         return operation

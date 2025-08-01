@@ -73,12 +73,12 @@ def test_ingest_audio():
     )
     ## Short Audio ingestion, no metadata
     operation = ingestion.single()
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
     ## Long Audio ingestion, no metadata
     ingestion.audio_path = _AUDIO_LOCATION
     operation = ingestion.single()
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
     ## Long Audio ingestion, with metadata
     operation = ingestion.single(
@@ -90,13 +90,12 @@ def test_ingest_audio():
         customer_satisfaction = 5,
         labels = {"key":"value","key1":"value1"}
     )
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
     
 ## Test ingesting transcript
 def test_ingest_transcript():
     """Test ingesting a transcript files to insights"""
     reset_insights_settings()
-
 
     ingestion = insights.Ingestion(
         parent = _PARENT,
@@ -104,7 +103,7 @@ def test_ingest_transcript():
     )
     ## Single transcript ingestion, no metadata
     operation = ingestion.single()
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
     ## Single transcript ingestion, with metadata
     operation = ingestion.single(
@@ -116,7 +115,7 @@ def test_ingest_transcript():
         customer_satisfaction = 5,
         labels = {"key":"value","key1":"value1"}
     )
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
     ingestion.transcript_path = _TRANSCRIPTS_BULK_PATH
     
@@ -124,11 +123,11 @@ def test_ingest_transcript():
     operation = ingestion.bulk(
         metadata_path = _METADATA_BULK_PATH
     )
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
     ## Bulk transcript ingestion, with metadata
     operation = ingestion.bulk()
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
 ## Test ingesting mono audio file with sttv1 diarization
 def test_ingest_audio_with_diarization():
@@ -140,13 +139,13 @@ def test_ingest_audio_with_diarization():
         audio_type = speech.AudioChannels.MONO,
         encoding = speech.Encodings.MULAW
     )
-    assert type(transcript) is types_v1.cloud_speech.LongRunningRecognizeResponse
+    assert isinstance(transcript, types_v1.LongRunningRecognizeResponse)
 
     ft = format.Speech()
     transcript = ft.v1_recognizer_to_json(transcript)
 
     gcs = storage.Gcs(
-        project_name = _PROBER_PROJECT_ID,
+        project_id = _PROBER_PROJECT_ID,
         bucket_name = _TMP_PROBER_BUCKET
     )
 
@@ -163,26 +162,29 @@ def test_ingest_audio_with_diarization():
         transcript_path = gcs_path
     )
     operation = ingestion.single()
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
 ## Test ingesting transcript with role recognition
 def test_ingest_audio_with_role_recognition():
     reset_insights_settings()
     sp = speech.V2(
-        project_id = _PROBER_PROJECT_ID
+        project_id=_PROBER_PROJECT_ID,
+        tmp_storage = f'gs://{_TMP_PROBER_BUCKET}'
     )
-    transcript = sp.create_transcription(
-        audio_file_path = _MONO_SHORT_AUDIO_LOCATION,
-        recognizer_path = 'projects/668409284854/locations/global/recognizers/global-prober'
+    operation = sp.create_transcription(
+        audio_file_path = _AUDIO_LOCATION,
+        recognizer_path = 'projects/668409284854/locations/global/recognizers/global-prober',
     )
-    assert type(transcript) is types_v2.cloud_speech.RecognizeResponse
+    operation = operation.result()
+    assert isinstance(operation, types_v2.BatchRecognizeResponse)
     
-    ft = format.Speech()
-    transcript = ft.v2_recognizer_to_dict(transcript)
     gcs = storage.Gcs(
-        project_name = _PROBER_PROJECT_ID,
+        project_id = _PROBER_PROJECT_ID,
         bucket_name = _TMP_PROBER_BUCKET
     )
+    transcript = gcs.download_blob(operation.results[_AUDIO_LOCATION].uri.split('/')[-1])
+    transcript = json.loads(transcript)
+    
     file_name = f'{uuid.uuid4()}.json'
     
     role_recognizer = rr.RoleRecognizer()
@@ -201,11 +203,11 @@ def test_ingest_audio_with_role_recognition():
     )
     operation = ingestion.single()
     
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
 ## Test ingesting aws transcript 
 def test_ingest_vendor_transcript():
-    # reset_insights_settings()
+    reset_insights_settings()
     with open('tests/integration/data/aws_transcript.json', 'r') as f:
         aws_data = json.load(f)
 
@@ -221,7 +223,7 @@ def test_ingest_vendor_transcript():
     genesys_file_name = f'{uuid.uuid4()}_genesys.json'
     aws_file_name = f'{uuid.uuid4()}_aws.json'
     gcs = storage.Gcs(
-        project_name = _PROBER_PROJECT_ID,
+        project_id = _PROBER_PROJECT_ID,
         bucket_name = _TMP_PROBER_BUCKET
     )
     gcs.upload_blob(
@@ -247,7 +249,7 @@ def test_ingest_vendor_transcript():
             "team":"aws_transcript"
         }
     )
-    assert type(operation) is Operation
+    assert isinstance(operation, Operation)
 
     ## Ingesting Genesys transcript
     ingestion.transcript_path =  f'gs://{_TMP_PROBER_BUCKET}/{genesys_file_name}'
@@ -258,6 +260,4 @@ def test_ingest_vendor_transcript():
             "team":"genesys_transcript"
         }
     )
-    assert type(operation) is Operation
-
-
+    assert isinstance(operation, Operation)
