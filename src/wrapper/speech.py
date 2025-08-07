@@ -162,24 +162,24 @@ class V2:
                 model=self.model,
                 language_codes=[self.language_code],
                 features=types_v2.RecognitionFeatures(
-                    profanity_filter=True,
+                    profanity_filter=False,
                     enable_word_time_offsets=True,
-                    enable_word_confidence=True,
-                    enable_automatic_punctuation=True,
-                    enable_spoken_punctuation=True,
-                    enable_spoken_emojis=True,
+                    enable_word_confidence=False,
+                    enable_automatic_punctuation=False,
+                    enable_spoken_punctuation=False,
+                    enable_spoken_emojis=False,
                 ),
             ),
         )
 
         if self.diarization:
             recognizer.default_recognition_config.features = types_v2.RecognitionFeatures(
-                profanity_filter=True,
+                profanity_filter=False,
                 enable_word_time_offsets=True,
-                enable_word_confidence=True,
-                enable_automatic_punctuation=True,
-                enable_spoken_punctuation=True,
-                enable_spoken_emojis=True,
+                enable_word_confidence=False,
+                enable_automatic_punctuation=False,
+                enable_spoken_punctuation=False,
+                enable_spoken_emojis=False,
                 diarization_config=types_v2.SpeakerDiarizationConfig(
                     min_speaker_count = 1,
                     max_speaker_count = 2
