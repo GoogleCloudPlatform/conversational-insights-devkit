@@ -19,7 +19,7 @@ import pytest
 
 from google.cloud import exceptions
 
-from conidk.wrapper import storage
+from cxidk.wrapper import storage
 
 def test_upload_files():
     """Test uploading files to GCS and also tests list"""

@@ -24,7 +24,7 @@ import pytest
 from google.api_core import exceptions
 from pytest_mock import MockerFixture
 
-from conidk.workflow.views_manager import Manager, SourceType
+from cxidk.workflow.views_manager import Manager, SourceType
 
 # --- Constants ---
 PROJECT_ID = "test-project"
@@ -40,34 +40,34 @@ CUSTOM_ROLE_ID = "test_custom_role"
 @pytest.fixture
 def mock_insights_wrapper(mocker: MockerFixture) -> MagicMock:
     """Mocks the insights.AuthorizedViews wrapper."""
-    return mocker.patch("conidk.workflow.views_manager.insights.AuthorizedViews")
+    return mocker.patch("cxidk.workflow.views_manager.insights.AuthorizedViews")
 
 
 @pytest.fixture
 def mock_iam_wrapper(mocker: MockerFixture) -> MagicMock:
     """Mocks the iam.Policy wrapper."""
-    return mocker.patch("conidk.workflow.views_manager.iam.Policy")
+    return mocker.patch("cxidk.workflow.views_manager.iam.Policy")
 
 
 @pytest.fixture
 def mock_sheets_wrapper(mocker: MockerFixture) -> MagicMock:
     """Mocks the sheets.Sheets wrapper."""
-    return mocker.patch("conidk.workflow.views_manager.sheets.Sheets")
+    return mocker.patch("cxidk.workflow.views_manager.sheets.Sheets")
 
 
 @pytest.fixture
 def mock_pandas_read_csv(mocker: MockerFixture) -> MagicMock:
     """Mocks pandas.read_csv."""
-    return mocker.patch("conidk.workflow.views_manager.pd.read_csv")
+    return mocker.patch("cxidk.workflow.views_manager.pd.read_csv")
 
 
 @pytest.fixture
 def mock_logging(mocker: MockerFixture) -> Dict[str, MagicMock]:
     """Mocks logging methods."""
     return {
-        "info": mocker.patch("conidk.workflow.views_manager.logging.info"),
-        "error": mocker.patch("conidk.workflow.views_manager.logging.error"),
-        "warning": mocker.patch("conidk.workflow.views_manager.logging.warning"),
+        "info": mocker.patch("cxidk.workflow.views_manager.logging.info"),
+        "error": mocker.patch("cxidk.workflow.views_manager.logging.error"),
+        "warning": mocker.patch("cxidk.workflow.views_manager.logging.warning"),
     }
 
 

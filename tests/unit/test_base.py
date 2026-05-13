@@ -20,7 +20,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from google.api_core.client_options import ClientOptions
 
-from conidk.core.base import Auth, Config, Environments, Methods, Request
+from cxidk.core.base import Auth, Config, Environments, Methods, Request
 
 
 class TestAuth:
@@ -34,7 +34,7 @@ class TestAuth:
         mock_creds.refresh.assert_called_once()
 
     @patch("google.auth.transport.requests.Request")
-    @patch("conidk.core.base.service_account")
+    @patch("cxidk.core.base.service_account")
     def test_init_with_creds_path(
         self, mock_service_account: MagicMock, _: MagicMock
     ) -> None:
@@ -43,7 +43,7 @@ class TestAuth:
         mock_service_account.Credentials.from_service_account_file.assert_called_once()
 
     @patch("google.auth.transport.requests.Request")
-    @patch("conidk.core.base.service_account")
+    @patch("cxidk.core.base.service_account")
     def test_init_with_creds_dict(
         self, mock_service_account: MagicMock, _: MagicMock
     ) -> None:
@@ -52,7 +52,7 @@ class TestAuth:
         mock_service_account.Credentials.from_service_account_info.assert_called_once()
 
     @patch("google.auth.transport.requests.Request")
-    @patch("conidk.core.base.default")
+    @patch("cxidk.core.base.default")
     def test_init_with_default(self, mock_default: MagicMock, _: MagicMock) -> None:
         """Test Auth initialization with default."""
         mock_creds = MagicMock()
@@ -148,8 +148,8 @@ class TestRequest:
         """Fixture for a mocked Config object."""
         return MagicMock(spec=Config)
 
-    @patch("conidk.core.base.Auth")
-    @patch("conidk.core.base.Config")
+    @patch("cxidk.core.base.Auth")
+    @patch("cxidk.core.base.Config")
     def test_init_defaults(self, mock_config_cls: MagicMock, mock_auth_cls: MagicMock) -> None:
         """Test Request initialization with default auth and config."""
         req = Request(project_id=self.PROJECT_ID, location=self.LOCATION)
@@ -169,7 +169,7 @@ class TestRequest:
         assert req.auth == mock_auth
         assert req.config == mock_config
 
-    @patch("conidk.core.base.requests")
+    @patch("cxidk.core.base.requests")
     def test_make_get_request(self, mock_requests: MagicMock, mock_auth: MagicMock) -> None:
         """Test a successful GET request."""
         mock_response = MagicMock()
@@ -190,7 +190,7 @@ class TestRequest:
         )
         assert response == {"key": "value"}
 
-    @patch("conidk.core.base.requests")
+    @patch("cxidk.core.base.requests")
     def test_make_post_request(self, mock_requests: MagicMock, mock_auth: MagicMock) -> None:
         """Test a successful POST request."""
         mock_response = MagicMock()

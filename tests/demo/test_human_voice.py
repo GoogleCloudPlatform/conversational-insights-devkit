@@ -17,7 +17,7 @@
 from unittest.mock import patch
 import datetime
 import json
-from conidk.workflow.demo_artifacts.runners.human_voice import main
+from cxidk.workflow.demo_artifacts.runners.human_voice import main
 
 def test_file_name_generator():
     """Tests that the file name generator returns the correct format."""
@@ -25,13 +25,13 @@ def test_file_name_generator():
     assert len(file_name) == 18
     assert datetime.datetime.strptime(file_name, "%y%m%d%H%M%S%f")
 
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.logging")
 def test_runner_no_config(
     _mock_logging,
     _mock_random,
@@ -47,13 +47,13 @@ def test_runner_no_config(
     assert result == "0 conversations generated"
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.logging")
 def test_runner_with_valid_config(
     _mock_logging,
     mock_random,
@@ -102,13 +102,13 @@ def test_runner_with_valid_config(
     assert mock_ingestion.call_count == 4
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.logging")
 def test_runner_partially_configured_project(
     mock_logging,
     mock_random,
@@ -145,13 +145,13 @@ def test_runner_partially_configured_project(
     mock_random.randint.assert_not_called()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.logging")
 def test_runner_audio_generation_exception(
     mock_logging,
     mock_random,
@@ -205,13 +205,13 @@ def test_runner_audio_generation_exception(
     mock_ingestion.return_value.single.assert_not_called()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.logging")
 def test_runner_upload_exception(
     mock_logging,
     mock_random,
@@ -265,13 +265,13 @@ def test_runner_upload_exception(
     mock_ingestion.return_value.single.assert_not_called()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_voice.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.logging")
 def test_runner_ingestion_exception(
     mock_logging,
     mock_random,

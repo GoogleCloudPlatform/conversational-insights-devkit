@@ -17,12 +17,12 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from conidk.workflow.demo_artifacts.runners.agentic_nga_chat import main
+from cxidk.workflow.demo_artifacts.runners.agentic_nga_chat import main
 
 
-@patch('conidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.import_config')
-@patch('conidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.content_generator.Generator')
-@patch('conidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.agents.PolySynth')
+@patch('cxidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.import_config')
+@patch('cxidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.content_generator.Generator')
+@patch('cxidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.agents.PolySynth')
 @patch('random.randint', return_value=1)
 @patch('random.uniform', return_value=1)
 @patch('time.sleep', return_value=None)
@@ -79,7 +79,7 @@ def test_runner_success(
     mock_poly_instance.send_message.assert_called_once_with(session_id='session-123', text='hello')
 
 
-@patch('conidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.import_config')
+@patch('cxidk.workflow.demo_artifacts.runners.agentic_nga_chat.main.import_config')
 def test_runner_no_theme(mock_import_config, caplog):
     """Tests the runner when a project has no theme configured."""
     mock_config = {

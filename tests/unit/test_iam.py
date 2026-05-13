@@ -24,7 +24,7 @@ from google.iam.v1 import policy_pb2
 from google.protobuf.json_format import ParseDict
 from pytest_mock import MockerFixture
 
-from conidk.wrapper.iam import Policy
+from cxidk.wrapper.iam import Policy
 
 # --- Constants ---
 PROJECT_ID = "test-project"
@@ -37,20 +37,20 @@ PROJECT_NAME = f"projects/{PROJECT_ID}"
 @pytest.fixture
 def mock_projects_client(mocker: MockerFixture) -> MagicMock:
     """Mocks the resourcemanager_v3.ProjectsClient."""
-    return mocker.patch("conidk.wrapper.iam.resourcemanager_v3.ProjectsClient")
+    return mocker.patch("cxidk.wrapper.iam.resourcemanager_v3.ProjectsClient")
 
 
 @pytest.fixture
 def mock_iam_admin_client(mocker: MockerFixture) -> MagicMock:
     """Mocks the iam_admin_v1.IAMClient."""
-    return mocker.patch("conidk.wrapper.iam.iam_admin_v1.IAMClient")
+    return mocker.patch("cxidk.wrapper.iam.iam_admin_v1.IAMClient")
 
 
 @pytest.fixture(autouse=True)
 def mock_auth_config(mocker: MockerFixture) -> Generator[None, None, None]:
     """Mocks Auth and Config to prevent external calls."""
-    mocker.patch("conidk.wrapper.iam.base.Auth")
-    mocker.patch("conidk.wrapper.iam.base.Config")
+    mocker.patch("cxidk.wrapper.iam.base.Auth")
+    mocker.patch("cxidk.wrapper.iam.base.Config")
     yield
 
 

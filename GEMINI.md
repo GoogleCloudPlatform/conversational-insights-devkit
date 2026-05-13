@@ -42,7 +42,7 @@ This project uses `pylint` for linting, `mypy` for type checking, and `pytest` f
 
 ## Project Structure
 
--   `src/conidk/`: The main source code for the devkit.
+-   `src/cxidk/`: The main source code for the devkit.
     -   `core/`: Base classes and core abstractions.
     -   `workflow/`: Components for building conversation processing workflows (audio, formatting, etc.).
     -   `wrapper/`: Wrappers for external services (Vertex AI, Google Sheets, etc.).

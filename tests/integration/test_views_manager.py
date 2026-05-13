@@ -17,7 +17,7 @@ Docstring for tests.integration.test_bulk_authorized_views
 
 import os
 import pandas as pd
-from conidk.workflow import views_manager as authorized_views
+from cxidk.workflow import views_manager as authorized_views
 
 
 _PROBER_PROJECT_ID = "insights-python-tooling-prober"

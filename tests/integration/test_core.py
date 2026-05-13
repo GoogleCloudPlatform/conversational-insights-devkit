@@ -16,7 +16,7 @@
 
 import pytest
 
-from conidk.core import base
+from cxidk.core import base
 
 def test_different_envs():
     """Test different environments scenarios"""

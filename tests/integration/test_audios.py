@@ -17,9 +17,9 @@
 import uuid
 import json
 
-from conidk.wrapper import storage
-from conidk.workflow import audio
-from conidk.wrapper import speech
+from cxidk.wrapper import storage
+from cxidk.workflow import audio
+from cxidk.wrapper import speech
 
 _PROJECT_ID = "insights-python-tooling-prober"
 _PROBER_BUCKET = "upload-tmp-prober"

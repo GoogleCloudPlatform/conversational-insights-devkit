@@ -20,8 +20,8 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 
 # Import the code to be tested
-from conidk.core import base
-from conidk.wrapper.vertex import Generator, GeminiModels, MimeTypes
+from cxidk.core import base
+from cxidk.wrapper.vertex import Generator, GeminiModels, MimeTypes
 
 # --- Constants for Reusability ---
 TEST_PROJECT_ID = "test-project-id"
@@ -34,8 +34,8 @@ EXPECTED_RESPONSE_TEXT = "Arr, 'tis because of the scattering of light, matey!"
 # --- Pytest Fixtures for Mocks ---
 @pytest.fixture(autouse=True)
 def mock_auth_fixture() -> TypingGenerator[MagicMock, None, None]:
-    """Mocks conidk.core.base.default to prevent DefaultCredentialsError."""
-    with patch("conidk.core.base.default") as mock_auth_default:
+    """Mocks cxidk.core.base.default to prevent DefaultCredentialsError."""
+    with patch("cxidk.core.base.default") as mock_auth_default:
         mock_credentials = MagicMock()
         mock_credentials.valid = True
         mock_credentials.token = "test_token"
@@ -47,7 +47,7 @@ def mock_auth_fixture() -> TypingGenerator[MagicMock, None, None]:
 def fixture_mock_genai_client() -> TypingGenerator[MagicMock, None, None]:
     """A pytest fixture that mocks the genai.Client and its nested methods."""
     # Patch the Client where it's looked up (in the 'vertex' module)
-    with patch("conidk.wrapper.vertex.genai.Client") as mock_client_class:
+    with patch("cxidk.wrapper.vertex.genai.Client") as mock_client_class:
         mock_client_instance = MagicMock()
         mock_client_class.return_value = mock_client_instance
         yield mock_client_instance
@@ -55,13 +55,13 @@ def fixture_mock_genai_client() -> TypingGenerator[MagicMock, None, None]:
 
 @pytest.fixture(name="mock_base_config")
 def fixture_mock_base_config() -> MagicMock:
-    """A pytest fixture that mocks the conidk.core.base.Config object."""
+    """A pytest fixture that mocks the cxidk.core.base.Config object."""
     return MagicMock(spec=base.Config)
 
 
 @pytest.fixture(name="mock_base_auth")
 def fixture_mock_base_auth() -> MagicMock:
-    """A pytest fixture that mocks the conidk.core.base.Auth object."""
+    """A pytest fixture that mocks the cxidk.core.base.Auth object."""
     return MagicMock(spec=base.Auth)
 
 
@@ -72,12 +72,12 @@ def fixture_mock_base_auth() -> MagicMock:
 ###
 
 
-@patch("conidk.wrapper.vertex.genai.Client")
+@patch("cxidk.wrapper.vertex.genai.Client")
 def test_generator_init_with_defaults(mock_genai_client_class: MagicMock) -> None:
     """Verifies Generator initializes correctly when auth/config are not provided."""
     mock_genai_client_instance = MagicMock()
     mock_genai_client_class.return_value = mock_genai_client_instance
-    with patch("conidk.wrapper.vertex.base") as mock_base:
+    with patch("cxidk.wrapper.vertex.base") as mock_base:
         generator = Generator(project_id=TEST_PROJECT_ID, location=TEST_LOCATION)
 
         # Assert that default objects were created
@@ -139,7 +139,7 @@ def test_content_generation_success_and_parameter_passing(
     mock_genai_client.models.generate_content.return_value = mock_response
 
     # Patch the 'types' module to capture the config object
-    with patch("conidk.wrapper.vertex.types") as mock_types:
+    with patch("cxidk.wrapper.vertex.types") as mock_types:
         generator = Generator(project_id=TEST_PROJECT_ID, location=TEST_LOCATION)
         output_schema: Dict[str, Any] = {
             "type": "object",

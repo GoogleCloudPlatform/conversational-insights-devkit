@@ -20,13 +20,13 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 import requests
 
-from conidk.wrapper import agents
+from cxidk.wrapper import agents
 
 
 @pytest.fixture(autouse=True)
 def mock_auth_fixture() -> Generator[MagicMock, None, None]:
-    """Mocks conidk.core.base.default to prevent DefaultCredentialsError."""
-    with patch("conidk.core.base.default") as mock_auth_default:
+    """Mocks cxidk.core.base.default to prevent DefaultCredentialsError."""
+    with patch("cxidk.core.base.default") as mock_auth_default:
         mock_credentials = MagicMock()
         mock_credentials.valid = True
         mock_credentials.token = "test_token"
@@ -209,8 +209,8 @@ class TestPolySynth:
         assert response == "response1\nresponse2\n"
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_init(
     mock_participants_client: MagicMock,
     mock_conversations_client: MagicMock,
@@ -230,8 +230,8 @@ def test_dialogflow_init(
     mock_participants_client.assert_called_once()
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_create_conversation(
     mock_participants_client: MagicMock,  # pylint: disable=unused-argument
     mock_conversations_client: MagicMock,
@@ -251,8 +251,8 @@ def test_dialogflow_create_conversation(
     assert client.conversation_name == "conv1"
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_create_participant(
     mock_participants_client: MagicMock,
     mock_conversations_client: MagicMock,  # pylint: disable=unused-argument
@@ -273,8 +273,8 @@ def test_dialogflow_create_participant(
     assert client.participant_name == "part1"
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_create_participant_no_conv(
     mock_participants_client: MagicMock,  # pylint: disable=unused-argument
     mock_conversations_client: MagicMock,  # pylint: disable=unused-argument
@@ -290,9 +290,9 @@ def test_dialogflow_create_participant_no_conv(
         client.create_participant()
 
 
-@patch("conidk.wrapper.agents.ConversationProfilesClient")
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationProfilesClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_create_conversation_profile(
     mock_participants_client: MagicMock,  # pylint: disable=unused-argument
     mock_conversations_client: MagicMock,  # pylint: disable=unused-argument
@@ -312,8 +312,8 @@ def test_dialogflow_create_conversation_profile(
     assert response.name == "prof1"
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_send_message(
     mock_participants_client: MagicMock,
     mock_conversations_client: MagicMock,  # pylint: disable=unused-argument
@@ -333,8 +333,8 @@ def test_dialogflow_send_message(
     assert reply == "response"
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_send_message_no_participant(
     mock_participants_client: MagicMock,  # pylint: disable=unused-argument
     mock_conversations_client: MagicMock,  # pylint: disable=unused-argument
@@ -350,8 +350,8 @@ def test_dialogflow_send_message_no_participant(
         client.send_message("hello")
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_complete_conversation(
     mock_participants_client: MagicMock,  # pylint: disable=unused-argument
     mock_conversations_client: MagicMock,
@@ -372,8 +372,8 @@ def test_dialogflow_complete_conversation(
     )
 
 
-@patch("conidk.wrapper.agents.ConversationsClient")
-@patch("conidk.wrapper.agents.ParticipantsClient")
+@patch("cxidk.wrapper.agents.ConversationsClient")
+@patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_complete_conversation_no_conv(
     mock_participants_client: MagicMock,  # pylint: disable=unused-argument
     mock_conversations_client: MagicMock,  # pylint: disable=unused-argument

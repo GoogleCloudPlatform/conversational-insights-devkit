@@ -1,9 +1,9 @@
 # Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
 import pytest
 from unittest.mock import MagicMock, patch
-from conidk.workflow.insight_refinements.topic_refinement import TopicRefiner
-from conidk.workflow.insight_refinements.schemas.topic import L2TaxonomyResult
-from conidk.workflow.insight_refinements.schemas.input import (
+from cxidk.workflow.insight_refinements.topic_refinement import TopicRefiner
+from cxidk.workflow.insight_refinements.schemas.topic import L2TaxonomyResult
+from cxidk.workflow.insight_refinements.schemas.input import (
     BatchAnalysisInput,
     GCPConfig,
     CCAIConfig,
@@ -107,7 +107,7 @@ def test_prompt_template_gcs_fallback(
     refiner = TopicRefiner(mock_config)
 
     # Verify it used the fallback template
-    from conidk.workflow.insight_refinements.topic_refinement import DEFAULT_USER_PROMPT_TEMPLATE
+    from cxidk.workflow.insight_refinements.topic_refinement import DEFAULT_USER_PROMPT_TEMPLATE
 
     assert refiner.prompt_template == DEFAULT_USER_PROMPT_TEMPLATE
 

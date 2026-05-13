@@ -19,13 +19,13 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from conidk.workflow.content_generator import Generator
+from cxidk.workflow.content_generator import Generator
 
 
 @pytest.fixture(autouse=True)
 def mock_auth_fixture() -> GeneratorType[MagicMock, None, None]:
-    """Mocks conidk.core.base.default to prevent DefaultCredentialsError."""
-    with patch("conidk.core.base.default") as mock_auth_default:
+    """Mocks cxidk.core.base.default to prevent DefaultCredentialsError."""
+    with patch("cxidk.core.base.default") as mock_auth_default:
         mock_credentials = MagicMock()
         mock_credentials.valid = True
         mock_credentials.token = "test_token"
@@ -36,7 +36,7 @@ def mock_auth_fixture() -> GeneratorType[MagicMock, None, None]:
 class TestGenerator:
     """Tests for the Generator class."""
 
-    @patch("conidk.workflow.content_generator.vertex.Generator")
+    @patch("cxidk.workflow.content_generator.vertex.Generator")
     def test_init(self, mock_vertex_generator: MagicMock) -> None:
         """Test Generator initialization."""
         generator = Generator(project_id="test-project", location="us-central1")
@@ -46,7 +46,7 @@ class TestGenerator:
         assert generator.generator == mock_vertex_generator.return_value
 
     @patch("builtins.open", new_callable=mock_open, read_data='{"key": "value"}')
-    @patch("conidk.workflow.content_generator.vertex.Generator")
+    @patch("cxidk.workflow.content_generator.vertex.Generator")
     def test_create_conversation(self, mock_vertex_generator: MagicMock, _: MagicMock) -> None:
         """Test create_conversation."""
         mock_generator_instance = mock_vertex_generator.return_value
@@ -115,7 +115,7 @@ class TestGenerator:
         assert params["long_conversation"] is True
 
     @patch("builtins.open", new_callable=mock_open, read_data='{"key": "value"}')
-    @patch("conidk.workflow.content_generator.vertex.Generator")
+    @patch("cxidk.workflow.content_generator.vertex.Generator")
     def test_create_turn(self, mock_vertex_generator: MagicMock, _: MagicMock) -> None:
         """Test create_turn."""
         mock_generator_instance = mock_vertex_generator.return_value
@@ -133,7 +133,7 @@ class TestGenerator:
 
     @patch("random.randint", return_value=123456)
     @patch("builtins.open", new_callable=mock_open, read_data='{"agents": [{}]}')
-    @patch("conidk.workflow.content_generator.vertex.Generator")
+    @patch("cxidk.workflow.content_generator.vertex.Generator")
     def test_create_agents(
         self, mock_vertex_generator: MagicMock, _: MagicMock, __: MagicMock
     ) -> None:

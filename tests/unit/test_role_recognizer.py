@@ -17,10 +17,10 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from conidk.workflow.role_recognizer import RoleRecognizer
+from cxidk.workflow.role_recognizer import RoleRecognizer
 
 
-@patch("conidk.workflow.role_recognizer.GenerativeModel")
+@patch("cxidk.workflow.role_recognizer.GenerativeModel")
 def test_role_recognizer_init_defaults(mock_generative_model: MagicMock) -> None:
     """Test RoleRecognizer initialization with default values."""
     recognizer = RoleRecognizer()
@@ -29,7 +29,7 @@ def test_role_recognizer_init_defaults(mock_generative_model: MagicMock) -> None
     mock_generative_model.assert_called_once_with(model_name="gemini-2.5-pro")
 
 
-@patch("conidk.workflow.role_recognizer.GenerativeModel")
+@patch("cxidk.workflow.role_recognizer.GenerativeModel")
 def test_role_recognizer_init_custom(mock_generative_model: MagicMock) -> None:
     """Test RoleRecognizer initialization with custom values."""
     recognizer = RoleRecognizer(model_name="custom-model", prompt="custom prompt")
@@ -38,7 +38,7 @@ def test_role_recognizer_init_custom(mock_generative_model: MagicMock) -> None:
     mock_generative_model.assert_called_once_with(model_name="custom-model")
 
 
-@patch("conidk.workflow.role_recognizer.GenerativeModel")
+@patch("cxidk.workflow.role_recognizer.GenerativeModel")
 def test_predict_roles(mock_generative_model: MagicMock) -> None:
     """Test the predict_roles method."""
     mock_model_instance = MagicMock()
@@ -59,7 +59,7 @@ def test_predict_roles(mock_generative_model: MagicMock) -> None:
     assert roles == {"predictions": [{"role": "AGENT", "uid": 1}]}
 
 
-@patch("conidk.workflow.role_recognizer.GenerativeModel")
+@patch("cxidk.workflow.role_recognizer.GenerativeModel")
 def test_combine(_: MagicMock) -> None:
     """Test the combine method."""
     recognizer = RoleRecognizer()
@@ -85,7 +85,7 @@ def test_combine(_: MagicMock) -> None:
     assert json.loads(combined) == expected_conversation
 
 
-@patch("conidk.workflow.role_recognizer.GenerativeModel")
+@patch("cxidk.workflow.role_recognizer.GenerativeModel")
 def test_combine_with_missing_prediction(_: MagicMock) -> None:
     """Test the combine method with a missing prediction."""
     recognizer = RoleRecognizer()
@@ -106,7 +106,7 @@ def test_combine_with_missing_prediction(_: MagicMock) -> None:
     assert json.loads(combined) == expected_conversation
 
 
-@patch("conidk.workflow.role_recognizer.GenerativeModel")
+@patch("cxidk.workflow.role_recognizer.GenerativeModel")
 def test_combine_with_malformed_prediction(_: MagicMock) -> None:
     """Test the combine method with a malformed prediction."""
     recognizer = RoleRecognizer()

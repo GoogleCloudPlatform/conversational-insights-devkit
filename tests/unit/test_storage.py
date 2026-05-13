@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for the GCS wrapper in conidk.wrapper.storage."""
+"""Unit tests for the GCS wrapper in cxidk.wrapper.storage."""
 
 from typing import Generator, Optional, Union
 from unittest.mock import MagicMock, patch
@@ -20,8 +20,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Assuming the Gcs class is in this path
-from conidk.core import base
-from conidk.wrapper.storage import ContentType, Gcs
+from cxidk.core import base
+from cxidk.wrapper.storage import ContentType, Gcs
 
 # --- Constants for Reusability ---
 TEST_BUCKET_NAME = "test-bucket"
@@ -43,7 +43,7 @@ def fixture_mock_gcs_client() -> Generator[MagicMock, None, None]:
     This patch targets the Client where it's looked up (in the 'storage' module)
     to ensure our Gcs class uses the mock.
     """
-    with patch("conidk.wrapper.storage.Client") as mock_client_class:
+    with patch("cxidk.wrapper.storage.Client") as mock_client_class:
         mock_client_instance = MagicMock()
         mock_client_class.return_value = mock_client_instance
         yield mock_client_instance
@@ -51,7 +51,7 @@ def fixture_mock_gcs_client() -> Generator[MagicMock, None, None]:
 
 @pytest.fixture(name="mock_base_config")
 def fixture_mock_base_config() -> MagicMock:
-    """A pytest fixture that mocks the conidk.core.base.Config object."""
+    """A pytest fixture that mocks the cxidk.core.base.Config object."""
     mock_config = MagicMock(spec=base.Config)
     mock_config.set_storage_endpoint.return_value = {
         "api_endpoint": "storage.googleapis.com"
@@ -61,7 +61,7 @@ def fixture_mock_base_config() -> MagicMock:
 
 @pytest.fixture(name="mock_base_auth")
 def fixture_mock_base_auth() -> MagicMock:
-    """A pytest fixture that mocks the conidk.core.base.Auth object."""
+    """A pytest fixture that mocks the cxidk.core.base.Auth object."""
     return MagicMock(spec=base.Auth)
 
 
@@ -72,14 +72,14 @@ def fixture_mock_base_auth() -> MagicMock:
 ##
 
 
-@patch("conidk.wrapper.storage.Client")
+@patch("cxidk.wrapper.storage.Client")
 def test_gcs_init_with_defaults(mock_gcs_client_class: MagicMock) -> None:
     """
     Verifies Gcs initializes correctly when auth and config are not provided.
     """
     mock_gcs_client_instance = MagicMock()
     mock_gcs_client_class.return_value = mock_gcs_client_instance
-    with patch("conidk.wrapper.storage.base") as mock_base:
+    with patch("cxidk.wrapper.storage.base") as mock_base:
         mock_config_instance = MagicMock()
         mock_config_instance.set_storage_endpoint.return_value = {
             "api_endpoint": "storage.googleapis.com"

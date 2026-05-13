@@ -20,13 +20,13 @@ from unittest.mock import MagicMock, patch, mock_open
 import pytest
 from pytest_mock import MockerFixture
 
-from conidk.workflow.audio import GenerateAudio, RedactAudio, Utils
+from cxidk.workflow.audio import GenerateAudio, RedactAudio, Utils
 
 
 @pytest.fixture(autouse=True)
 def mock_auth_fixture() -> Generator[MagicMock, None, None]:
-    """Mocks conidk.core.base.default to prevent DefaultCredentialsError."""
-    with patch("conidk.core.base.default") as mock_auth_default:
+    """Mocks cxidk.core.base.default to prevent DefaultCredentialsError."""
+    with patch("cxidk.core.base.default") as mock_auth_default:
         mock_credentials = MagicMock()
         mock_credentials.valid = True
         mock_credentials.token = "test_token"
@@ -37,37 +37,37 @@ def mock_auth_fixture() -> Generator[MagicMock, None, None]:
 @pytest.fixture
 def mock_tts_client(mocker: MockerFixture) -> MagicMock:
     """Mocks the TextToSpeech client."""
-    return mocker.patch("conidk.workflow.audio.speech.TextToSpeech")
+    return mocker.patch("cxidk.workflow.audio.speech.TextToSpeech")
 
 
 @pytest.fixture
 def mock_gcs_client(mocker: MockerFixture) -> MagicMock:
     """Mocks the Gcs client."""
-    return mocker.patch("conidk.workflow.audio.storage.Gcs")
+    return mocker.patch("cxidk.workflow.audio.storage.Gcs")
 
 
 @pytest.fixture
 def mock_dlp_client(mocker: MockerFixture) -> MagicMock:
     """Mocks the DLP client."""
-    return mocker.patch("conidk.workflow.audio.sensitive_data_protection.DLP")
+    return mocker.patch("cxidk.workflow.audio.sensitive_data_protection.DLP")
 
 
 @pytest.fixture
 def mock_format_dlp(mocker: MockerFixture) -> MagicMock:
     """Mocks the format.Dlp class."""
-    return mocker.patch("conidk.workflow.audio.ft.Dlp")
+    return mocker.patch("cxidk.workflow.audio.ft.Dlp")
 
 
 @pytest.fixture
 def mock_format_insights(mocker: MockerFixture) -> MagicMock:
     """Mocks the format.Insights class."""
-    return mocker.patch("conidk.workflow.audio.ft.Insights")
+    return mocker.patch("cxidk.workflow.audio.ft.Insights")
 
 
 @pytest.fixture(name="mock_audio_segment")
 def fixture_mock_audio_segment(mocker: MockerFixture) -> MagicMock:
     """Mocks the AudioSegment class."""
-    return mocker.patch("conidk.workflow.audio.AudioSegment", new=FakeAudioSegment) # type: ignore[return-value] # pylint: disable=line-too-long
+    return mocker.patch("cxidk.workflow.audio.AudioSegment", new=FakeAudioSegment) # type: ignore[return-value] # pylint: disable=line-too-long
 
 
 class FakeAudioSegment:
@@ -137,8 +137,8 @@ class TestGenerateAudio:
         audio_generator.bulk(transcripts, "/tmp/audio.wav")
         assert mock_single.call_count == 2
 
-    @patch("conidk.workflow.audio.speech.TextToSpeech")
-    @patch("conidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
+    @patch("cxidk.workflow.audio.speech.TextToSpeech")
+    @patch("cxidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
     def test_single_local_save(self, mock_tts: MagicMock) -> None:
         """Test the single method for local file saving."""
         mock_tts_instance = mock_tts.return_value
@@ -155,9 +155,9 @@ class TestGenerateAudio:
             audio_generator.single(transcript, "/tmp/audio.wav")
             mock_export.assert_called_with("/tmp/audio.wav", format="wav")
 
-    @patch("conidk.workflow.audio.storage.Gcs")
-    @patch("conidk.workflow.audio.speech.TextToSpeech")
-    @patch("conidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
+    @patch("cxidk.workflow.audio.storage.Gcs")
+    @patch("cxidk.workflow.audio.speech.TextToSpeech")
+    @patch("cxidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
     def test_single_gcs_upload(self, mock_tts: MagicMock, mock_gcs: MagicMock) -> None:
         """Test the single method for GCS upload."""
         mock_tts_instance = mock_tts.return_value
@@ -175,7 +175,7 @@ class TestGenerateAudio:
         with pytest.raises(ValueError):
             audio_generator.single({}, "/tmp/audio.wav")
 
-    @patch("conidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
+    @patch("cxidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
     def test_single_empty_audio(self) -> None:
         """Test single with empty combined audio."""
         audio_generator = GenerateAudio(project_id="test-project")
@@ -272,7 +272,7 @@ class TestRedactAudio:
                 original_transcript, redacted_transcript
             )
 
-    @patch("conidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
+    @patch("cxidk.workflow.audio.AudioSegment", new=FakeAudioSegment)
     def test_replace_audio_segments(self, redact_audio_instance: RedactAudio) -> None:
         """Test _replace_audio_segments."""
         with patch.object(FakeAudioSegment, "export") as mock_export:
@@ -281,7 +281,7 @@ class TestRedactAudio:
             )
             mock_export.assert_called_once_with("output.wav", format="wav")
 
-    @patch("conidk.workflow.audio.Utils.save_audio_locally")
+    @patch("cxidk.workflow.audio.Utils.save_audio_locally")
     @patch.object(RedactAudio, "_replace_audio_segments")
     @patch.object(RedactAudio, "_find_redacted_word_timestamps", return_value=[(1.0, 2.0)])
     def test_process(

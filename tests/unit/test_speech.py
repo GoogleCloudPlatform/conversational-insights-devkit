@@ -26,7 +26,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from conidk.wrapper.speech import (
+from cxidk.wrapper.speech import (
     V1,
     V2,
     TextToSpeech,
@@ -45,24 +45,24 @@ from conidk.wrapper.speech import (
 def mock_clients(mocker: MagicMock) -> Dict[str, MagicMock]:
     """Mocks all Google Cloud clients used in the speech module."""
     mock_v1 = mocker.patch(
-        "conidk.wrapper.speech.speech_v1.SpeechClient", autospec=True
+        "cxidk.wrapper.speech.speech_v1.SpeechClient", autospec=True
     )
     mock_v2 = mocker.patch(
-        "conidk.wrapper.speech.speech_v2.SpeechClient", autospec=True
+        "cxidk.wrapper.speech.speech_v2.SpeechClient", autospec=True
     )
     mock_tts = mocker.patch(
-        "conidk.wrapper.speech.texttospeech.TextToSpeechClient", autospec=True
+        "cxidk.wrapper.speech.texttospeech.TextToSpeechClient", autospec=True
     )
     return {"v1": mock_v1, "v2": mock_v2, "tts": mock_tts}
 
 
-# Fixture to mock the 'conidk.core.base' dependency
+# Fixture to mock the 'cxidk.core.base' dependency
 @pytest.fixture(autouse=True)
 def mock_base(mocker: MagicMock) -> Dict[str, MagicMock]:
-    """Mocks conidk.core.base.Auth and conidk.core.base.Config."""
+    """Mocks cxidk.core.base.Auth and cxidk.core.base.Config."""
     # Patch 'base' as it's imported in speech.py
-    mock_auth = mocker.patch("conidk.wrapper.speech.base.Auth", autospec=True)
-    mock_config = mocker.patch("conidk.wrapper.speech.base.Config", autospec=True)
+    mock_auth = mocker.patch("cxidk.wrapper.speech.base.Auth", autospec=True)
+    mock_config = mocker.patch("cxidk.wrapper.speech.base.Config", autospec=True)
 
     # Add creds attribute to the mock_auth instance
     mock_auth.return_value.creds = "mock-credentials"
@@ -78,7 +78,7 @@ def mock_base(mocker: MagicMock) -> Dict[str, MagicMock]:
 @pytest.fixture
 def mock_uuid(mocker: MagicMock) -> MagicMock:
     """Mocks uuid.uuid4 to return a fixed UUID."""
-    mock_uuid_patch = mocker.patch("conidk.wrapper.speech.uuid.uuid4", autospec=True)
+    mock_uuid_patch = mocker.patch("cxidk.wrapper.speech.uuid.uuid4", autospec=True)
     # A fixed UUID for predictable test results
     mock_uuid_patch.return_value = uuid.UUID("12345678-1234-5678-1234-567812345678")
     return mock_uuid_patch

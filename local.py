@@ -1,12 +1,12 @@
 """Testing redact audio files"""
 
 
-# from conidk.wrapper import storage
-from conidk.wrapper import speech
-from conidk.wrapper import storage
-from conidk.workflow import format as ft
-from conidk.wrapper import sensitive_data_protection
-from conidk.workflow import audio
+# from cxidk.wrapper import storage
+from cxidk.wrapper import speech
+from cxidk.wrapper import storage
+from cxidk.workflow import format as ft
+from cxidk.wrapper import sensitive_data_protection
+from cxidk.workflow import audio
 
 
 _TRANSCRIPT_BUCKET = "sample-audio-pipeline"

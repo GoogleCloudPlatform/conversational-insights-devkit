@@ -21,11 +21,11 @@ from google.api_core.operation import Operation
 from google.cloud.speech_v1 import types as types_v1
 from google.cloud.speech_v2 import types as types_v2
 
-from conidk.wrapper import insights
-from conidk.wrapper import speech
-from conidk.wrapper import storage
-from conidk.workflow import format as fff
-from conidk.workflow import role_recognizer as rr
+from cxidk.wrapper import insights
+from cxidk.wrapper import speech
+from cxidk.wrapper import storage
+from cxidk.workflow import format as fff
+from cxidk.workflow import role_recognizer as rr
 
 _MONO_SHORT_AUDIO_LOCATION = 'gs://audios-tmp-prober/mono-audio-1-short.wav'
 _SHORT_AUDIO_LOCATION = 'gs://audios-tmp-prober/stereo-audio-1-short.wav'

@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "conidk"
+name = "cxidk"
 version = "1.0.0"
 authors = [
-  { name="Thiago Alberto", email="talberto@google.com" },
+  { name="Thiago Alberto", email="alrrtas@gmail.com" },
 ]
-description = "A high-level API for Google's Conversational Insights."
+description = "A high-level API for Google's CX Insights."
 readme = "README.md"
 license = { file="LICENSE.txt" }
 requires-python = ">=3.8"
@@ -66,7 +66,7 @@ ignore_missing_imports = true
 # Ignore missing stubs for specific third-party libraries
 [[tool.mypy.overrides]]
 module = [
-  "conidk.*",
+  "cxidk.*",
   "google.*",
   "gspread",
   "pydub",
@@ -83,8 +83,8 @@ pythonpath = [
 ]
 
 [tool.setuptools.package-data]
-"conidk.workflow.utils.schemas" = ["*.json"]
-"conidk.workflow.utils.defaults" = ["*.json"]
+"cxidk.workflow.utils.schemas" = ["*.json"]
+"cxidk.workflow.utils.defaults" = ["*.json"]
 
 [tool.pylint.main]
 source-roots = ["src"]

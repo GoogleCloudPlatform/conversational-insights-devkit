@@ -3,8 +3,8 @@ import pytest
 import pandas as pd
 import sqlite3
 from unittest.mock import patch
-from conidk.workflow.insight_refinements.bq_client import TopicBQClient
-from conidk.workflow.insight_refinements.schemas.input import (
+from cxidk.workflow.insight_refinements.bq_client import TopicBQClient
+from cxidk.workflow.insight_refinements.schemas.input import (
     BatchAnalysisInput,
     GCPConfig,
     CCAIConfig,

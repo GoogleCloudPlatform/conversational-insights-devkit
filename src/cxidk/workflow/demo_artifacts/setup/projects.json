@@ -1,0 +1,288 @@
+{
+    "projects": [
+        {
+            "project_id": "cx-sandbox-349720",
+            "project_number": "1008133512633",
+            "location": "us-central1",
+            "environments": ["prod"],
+            "buckets": {
+                "audios": "nadineboucher-insights-audios",
+                "transcripts": "nadineboucher-insights-transcripts",
+                "metadata": "nadineboucher-insights-metadata"
+            },
+            "virtual_agents": [],
+            "generation_profile": {
+                "theme": ["Entertainment"],
+                "language": ["en-US"],
+                "topics": [
+                    "Subscription Cancellation","Unexpected Charges","Login and Password Issues",
+                    "Streaming Quality Problems","Blackout Restrictions","App Malfunctions","Updating Payment Information",
+                    "Error Code Troubleshooting","Disney Bundle Inquiries","Difficulty Finding Content",
+                    "Fantasy Sports Issues","Audio/Video Sync Problems","ESPN BET Account Help","Promotional Offer Redemption",
+                    "On-Demand Content Availability","On-Air Talent Feedback","Device Compatibility","Closed Captioning Issues",
+                    "Account Deletion Requests","Programming Complaints"
+                ],
+                "model": "gemini-2.5-pro",
+                "temperature": [0.8,0.1],
+                "topp": [0.9,1],
+                "topk": [30,40],
+                "sentiment_journeys": ["Stable with no change","Low to Neutral","High to Neutral", "Neutral to High"],
+                "company_name": "ESPN",
+                "max_conversations_per_run": {
+                    "audio": 5.0,
+                    "chat": 5.0,
+                    "agentic": 5.0
+                },
+                "probabilities": {
+                    "bad_sentiment": [0.1,0.2],
+                    "long_conversation": [0.1,0.2],
+                    "bad_performance": [0.1,0.2]
+                },
+                "prompt_hint": ["Simulate conversations that would be feasible to happen at ESPN, the company name is ESPN"]
+            }
+        },
+        {
+            "project_id": "ccai-insights-ux",
+            "project_number": "195821190183",
+            "location": "us",
+            "environments": ["prod"],
+            "buckets": {
+                "audios": "pipeline-tmp-audios",
+                "transcripts": "pipeline-tmp-transcripts",
+                "metadata": "pipeline-tmp-metadata"
+            },
+            "virtual_agents": [
+                {
+                    "agent": "90435a01-f8a0-42e9-a1e8-4a6417e9bfb4",
+                    "conversation_profile": "",
+                    "location": "",
+                    "type": "next-gen",
+                    "environment": "prod",
+                    "topics": [
+                        "Internet down",
+                        "bill too high",
+                        "upgrade eligibility",
+                        "moving address"
+                    ]
+                }
+            ],
+            "generation_profile": {
+                "theme": ["Telecommunications"],
+                "language": ["en-US"],
+                "topics":["Billing Inquiry and Charge Clarification","Payment Arrangement and Extension","Internet Service Outage or Slow Speed","TV Service Technical Issues (e.g., No Picture, Missing Channels)","Phone Service Problems (e.g., No Dial Tone, Call Quality)","Upgrade or Downgrade Service Plan","Add or Remove Products (e.g., TV Channels, Data Packs)","Technical Support for Equipment (Modem/Router/Set-Top Box)","Schedule or Reschedule a Technician Visit","Request to Cancel Service","Moving Home and Service Transfer","New Service Sales and Plan Information","Update Account Holder Information (Address, Contact)","Report a Network or Area-Wide Outage","Mobile Roaming and International Calling Inquiry","Password Reset (Wi-Fi or Online Account)","Questions about a Promotion or Discount","Equipment Return Process","Dispute a Specific Charge","Check Order or Installation Status"],
+                "model": "gemini-2.5-pro",
+                "temperature": [0.8,0.1],
+                "topp": [0.9,1],
+                "topk": [30,40],
+                "sentiment_journeys": ["Stable with no change","Low to Neutral","High to Neutral", "Neutral to High"],
+                "company_name": "Cymbal",
+                "max_conversations_per_run": {
+                    "audio": 5.0,
+                    "chat": 5.0,
+                    "agentic": 5.0
+                },
+                "probabilities": {
+                    "bad_sentiment": [0.1,0.2],
+                    "long_conversation": [0.1,0.2],
+                    "bad_performance": [0.1,0.2]
+                },
+                "prompt_hint": []
+            }
+        },
+        {
+            "project_id": "demos-ces",
+            "project_number": "145998823081",
+            "location": "us-central1",
+            "environments": [
+                "stg",
+                "prod"
+            ],
+            "buckets": {
+                "audios": "cxidk-pipeline-audios",
+                "transcripts": "cxidk-pipeline-trancripts",
+                "metadata": "cxidk-pipeline-metadata"
+            },
+            "virtual_agents": [
+                {
+                    "agent": "23fd8291-c954-4d48-bcd8-77dbd68a47ad",
+                    "conversation_profile": "SBYva5uMR8Cb6Av5UTMvaA",
+                    "location": "global",
+                    "type": "deterministic",
+                    "environment": "prod",
+                    "topics": [
+                        "reset password",
+                        "change billing password"
+                    ]
+                },
+                {
+                    "agent": "a59487e4-c8c1-4d6b-a66a-66ec3e738ab3",
+                    "conversation_profile": "p65g9HoHRyiC9JGZyw8OqQ",
+                    "location": "global",
+                    "type": "generative",
+                    "environment": "prod",
+                    "topics": [
+                        "Internet down",
+                        "bill too high",
+                        "upgrade eligibility",
+                        "moving address"
+                    ]
+                }
+            ],
+            "generation_profile": {
+                "theme": ["Telecommunications"],
+                "language": ["en-US"],
+                "topics":["Billing Inquiry and Charge Clarification","Payment Arrangement and Extension","Internet Service Outage or Slow Speed","TV Service Technical Issues (e.g., No Picture, Missing Channels)","Phone Service Problems (e.g., No Dial Tone, Call Quality)","Upgrade or Downgrade Service Plan","Add or Remove Products (e.g., TV Channels, Data Packs)","Technical Support for Equipment (Modem/Router/Set-Top Box)","Schedule or Reschedule a Technician Visit","Request to Cancel Service","Moving Home and Service Transfer","New Service Sales and Plan Information","Update Account Holder Information (Address, Contact)","Report a Network or Area-Wide Outage","Mobile Roaming and International Calling Inquiry","Password Reset (Wi-Fi or Online Account)","Questions about a Promotion or Discount","Equipment Return Process","Dispute a Specific Charge","Check Order or Installation Status"],
+                "model": "gemini-2.5-pro",
+                "temperature": [0.8,0.1],
+                "topp": [0.9,1],
+                "topk": [30,40],
+                "sentiment_journeys": ["Stable with no change","Low to Neutral","High to Neutral", "Neutral to High"],
+                "company_name": "Cymbal",
+                "max_conversations_per_run": {
+                    "audio": 5.0,
+                    "chat": 5.0,
+                    "agentic": 5.0
+                },
+                "probabilities": {
+                    "bad_sentiment": [0.1,0.2],
+                    "long_conversation": [0.1,0.2],
+                    "bad_performance": [0.1,0.2]
+                },
+                "prompt_hint": []
+            }
+        },
+        {
+            "project_id": "emea-bootcamp-2025",
+            "project_number": "195821190183",
+            "location": "us-central1",
+            "environments": [
+                "prod"
+            ],
+            "buckets": {
+                "audios": "insights-pipeline-audios",
+                "transcripts": "insights-pipeline-transcripts",
+                "metadata": "insights-pipeline-metadata"
+            },
+            "virtual_agents": [
+                {
+                    "agent": "87b8c522-4486-4fe4-bdda-3d853481fa0a",
+                    "conversation_profile": "IXCO44nQSRC40TSIaIU7kQ",
+                    "location": "global",
+                    "type": "deterministic",
+                    "environment": "prod",
+                    "topics": [
+                        "reset password",
+                        "change billing password"
+                    ]
+                },
+                {
+                    "agent": "57464219-2872-4d61-a63d-07f43c0abcc1",
+                    "conversation_profile": "TQf2YpvTSIOFCAzZsmgf2A",
+                    "location": "global",
+                    "type": "generative",
+                    "environment": "prod",
+                    "topics": [
+                        "Internet down",
+                        "bill too high",
+                        "upgrade eligibility",
+                        "moving address"
+                    ]
+                }
+            ],
+            "generation_profile": {
+                "theme": ["Telecommunications"],
+                "language": ["en-US"],
+                "topics":["Billing Inquiry and Charge Clarification","Payment Arrangement and Extension","Internet Service Outage or Slow Speed","TV Service Technical Issues (e.g., No Picture, Missing Channels)","Phone Service Problems (e.g., No Dial Tone, Call Quality)","Upgrade or Downgrade Service Plan","Add or Remove Products (e.g., TV Channels, Data Packs)","Technical Support for Equipment (Modem/Router/Set-Top Box)","Schedule or Reschedule a Technician Visit","Request to Cancel Service","Moving Home and Service Transfer","New Service Sales and Plan Information","Update Account Holder Information (Address, Contact)","Report a Network or Area-Wide Outage","Mobile Roaming and International Calling Inquiry","Password Reset (Wi-Fi or Online Account)","Questions about a Promotion or Discount","Equipment Return Process","Dispute a Specific Charge","Check Order or Installation Status"],
+                "model": "gemini-2.5-pro",
+                "temperature": [0.8,0.1],
+                "topp": [0.9,1],
+                "topk": [30,40],
+                "sentiment_journeys": ["Stable with no change","Low to Neutral","High to Neutral", "Neutral to High"],
+                "company_name": "Cymbal",
+                "max_conversations_per_run": {
+                    "audio": 5.0,
+                    "chat": 5.0,
+                    "agentic": 5.0
+                },
+                "probabilities": {
+                    "bad_sentiment": [0.1,0.2],
+                    "long_conversation": [0.1,0.2],
+                    "bad_performance": [0.1,0.2]
+                },
+                "prompt_hint": []
+            }
+        },
+        {
+            "project_id": "insights-demo-project-shared",
+            "project_number": "54292571639",
+            "location": "us-central1",
+            "environments": [
+                "prod"
+            ],
+            "buckets": {
+                "audios": "long-demo-audios",
+                "transcripts": "long-demo-chat",
+                "metadata": "long-demo-metadata"
+            },
+            "virtual_agents": [],
+            "generation_profile": {
+                "theme": ["Telecommunications"],
+                "language": ["en-US"],
+                "topics":["Billing Inquiry and Charge Clarification","Payment Arrangement and Extension","Internet Service Outage or Slow Speed","TV Service Technical Issues (e.g., No Picture, Missing Channels)","Phone Service Problems (e.g., No Dial Tone, Call Quality)","Upgrade or Downgrade Service Plan","Add or Remove Products (e.g., TV Channels, Data Packs)","Technical Support for Equipment (Modem/Router/Set-Top Box)","Schedule or Reschedule a Technician Visit","Request to Cancel Service","Moving Home and Service Transfer","New Service Sales and Plan Information","Update Account Holder Information (Address, Contact)","Report a Network or Area-Wide Outage","Mobile Roaming and International Calling Inquiry","Password Reset (Wi-Fi or Online Account)","Questions about a Promotion or Discount","Equipment Return Process","Dispute a Specific Charge","Check Order or Installation Status"],
+                "model": "gemini-2.5-pro",
+                "temperature": [0.8,0.1],
+                "topp": [0.9,1],
+                "topk": [30,40],
+                "sentiment_journeys": ["Stable with no change","Low to Neutral","High to Neutral", "Neutral to High"],
+                "company_name": "Cymbal",
+                "max_conversations_per_run": {
+                    "audio": 5.0,
+                    "chat": 5.0,
+                    "agentic": 5.0
+                },
+                "probabilities": {
+                    "bad_sentiment": [0.1,0.2],
+                    "long_conversation": [0.1,0.2],
+                    "bad_performance": [0.1,0.2]
+                },
+                "prompt_hint": []
+            }
+        },
+        {
+            "project_id": "insights-playground-shared",
+            "project_number": "821692639333",
+            "location": "us-central1",
+            "environments": [
+                "prod"
+            ],
+            "buckets": {
+                "audios": "storage-all-voice",
+                "transcripts": "storage-all-transcritps",
+                "metadata": "storage-all-metadata"
+            },
+            "virtual_agents": [],
+            "generation_profile": {
+                "theme": ["Telecommunications"],
+                "language": ["en-US"],
+                "topics":["Billing Inquiry and Charge Clarification","Payment Arrangement and Extension","Internet Service Outage or Slow Speed","TV Service Technical Issues (e.g., No Picture, Missing Channels)","Phone Service Problems (e.g., No Dial Tone, Call Quality)","Upgrade or Downgrade Service Plan","Add or Remove Products (e.g., TV Channels, Data Packs)","Technical Support for Equipment (Modem/Router/Set-Top Box)","Schedule or Reschedule a Technician Visit","Request to Cancel Service","Moving Home and Service Transfer","New Service Sales and Plan Information","Update Account Holder Information (Address, Contact)","Report a Network or Area-Wide Outage","Mobile Roaming and International Calling Inquiry","Password Reset (Wi-Fi or Online Account)","Questions about a Promotion or Discount","Equipment Return Process","Dispute a Specific Charge","Check Order or Installation Status"],
+                "model": "gemini-2.5-pro",
+                "temperature": [0.8,0.1],
+                "topp": [0.9,1],
+                "topk": [30,40],
+                "sentiment_journeys": ["Stable with no change","Low to Neutral","High to Neutral", "Neutral to High"],
+                "company_name": "Cymbal",
+                "max_conversations_per_run": {
+                    "audio": 5.0,
+                    "chat": 5.0,
+                    "agentic": 5.0
+                },
+                "probabilities": {
+                    "bad_sentiment": [0.1,0.2],
+                    "long_conversation": [0.1,0.2],
+                    "bad_performance": [0.1,0.2]
+                },
+                "prompt_hint": []
+            }
+        }
+    ]
+}

@@ -17,7 +17,7 @@
 from unittest.mock import patch
 import datetime # pylint: disable=unused-import
 import json
-from conidk.workflow.demo_artifacts.runners.human_chat import main
+from cxidk.workflow.demo_artifacts.runners.human_chat import main
 
 def test_file_name_generator():
     """Tests that the file name generator returns the correct format."""
@@ -26,12 +26,12 @@ def test_file_name_generator():
     assert datetime.datetime.strptime(file_name, "%y%m%d%H%M%S%f")
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.logging")
 def test_runner_no_config(
     _mock_logging,
     _mock_random,
@@ -46,14 +46,14 @@ def test_runner_no_config(
     assert result == "0 conversations generated"
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
 @patch(
-    "conidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
+    "cxidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
 )
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.logging")
 def test_runner_with_valid_config(
     _mock_logging,
     mock_random,
@@ -96,14 +96,14 @@ def test_runner_with_valid_config(
     assert mock_gcs.return_value.upload_blob.call_count == 4
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
 @patch(
-    "conidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
+    "cxidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
 )
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.logging")
 def test_runner_partially_configured_project(
     mock_logging,
     mock_random,
@@ -138,14 +138,14 @@ def test_runner_partially_configured_project(
     mock_random.randint.assert_not_called()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
 @patch(
-    "conidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
+    "cxidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
 )
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.logging")
 def test_runner_upload_exception(
     mock_logging,
     mock_random,
@@ -187,14 +187,14 @@ def test_runner_upload_exception(
     mock_ingestion.assert_not_called()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.storage.Gcs")
 @patch(
-    "conidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
+    "cxidk.workflow.demo_artifacts.runners.human_chat.main.content_generator.Generator"
 )
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.human_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.insights.Ingestion")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.human_chat.main.logging")
 def test_runner_ingestion_exception(
     mock_logging,
     mock_random,

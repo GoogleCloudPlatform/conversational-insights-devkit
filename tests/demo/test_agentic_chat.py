@@ -17,7 +17,7 @@
 from unittest.mock import patch
 import datetime
 import json
-from conidk.workflow.demo_artifacts.runners.agentic_chat import main
+from cxidk.workflow.demo_artifacts.runners.agentic_chat import main
 
 def test_file_name_generator():
     """Tests that the file name generator returns the correct format."""
@@ -25,13 +25,13 @@ def test_file_name_generator():
     assert len(file_name) == 18
     assert datetime.datetime.strptime(file_name, "%y%m%d%H%M%S%f")
 
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
 def test_runner_no_config(
     _mock_logging,
     _mock_random,
@@ -47,13 +47,13 @@ def test_runner_no_config(
     assert result == "0 conversations generated"
 
 
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
 def test_runner_partially_configured_project(
     mock_logging,
     mock_random,
@@ -86,13 +86,13 @@ def test_runner_partially_configured_project(
     mock_random.randint.assert_not_called()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
 def test_runner_no_virtual_agents(
     mock_logging,
     mock_random,
@@ -127,13 +127,13 @@ def test_runner_no_virtual_agents(
     mock_random.randint.assert_not_called()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
 def test_runner_valid_config_quit(
     _mock_logging,
     mock_random,
@@ -178,13 +178,13 @@ def test_runner_valid_config_quit(
     mock_dialogflow.return_value.complete_conversation.assert_called_once()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
 def test_runner_long_conversation(
     _mock_logging,
     mock_random,
@@ -228,13 +228,13 @@ def test_runner_long_conversation(
     mock_dialogflow.return_value.complete_conversation.assert_called_once()
 
 
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
-@patch("conidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.logging")
 def test_runner_send_message_exception(
     mock_logging,
     mock_random,

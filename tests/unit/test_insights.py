@@ -26,9 +26,9 @@ from google.cloud.contact_center_insights_v1 import types
 from google.protobuf.timestamp_pb2 import Timestamp # pylint: disable=no-name-in-module
 from pytest_mock import MockerFixture
 
-from conidk.core import base
+from cxidk.core import base
 
-from conidk.wrapper.insights import (
+from cxidk.wrapper.insights import (
     Settings,
     Ingestion,
     Analysis,
@@ -49,14 +49,14 @@ SETTINGS_PARENT = f"{PARENT}/settings"
 # --- Fixtures ---
 @pytest.fixture(autouse=True)
 def mock_base(mocker: MockerFixture) -> Dict[str, MagicMock]:
-    """Mocks conidk.core.base.Auth and conidk.core.base.Config."""
-    mock_auth_cls = mocker.patch("conidk.wrapper.insights.base.Auth", autospec=True)
+    """Mocks cxidk.core.base.Auth and cxidk.core.base.Config."""
+    mock_auth_cls = mocker.patch("cxidk.wrapper.insights.base.Auth", autospec=True)
     mock_credentials = MagicMock()
     mock_credentials.token = "test-token"
     mock_auth_cls.return_value.creds = mock_credentials
 
     mock_config_cls = mocker.patch(
-        "conidk.wrapper.insights.base.Config", autospec=True
+        "cxidk.wrapper.insights.base.Config", autospec=True
     )
     mock_config_cls.return_value.set_insights_endpoint.return_value = ClientOptions(
         api_endpoint="mock-endpoint"
@@ -90,7 +90,7 @@ def mock_config_instance() -> MagicMock:
 def mock_insights_client(mocker: MockerFixture) -> MagicMock:
     """Mocks the ContactCenterInsightsClient."""
     return mocker.patch(
-        "conidk.wrapper.insights.contact_center_insights_v1.ContactCenterInsightsClient",
+        "cxidk.wrapper.insights.contact_center_insights_v1.ContactCenterInsightsClient",
         autospec=True,
     )
 
@@ -99,23 +99,23 @@ def mock_insights_client(mocker: MockerFixture) -> MagicMock:
 def mock_requests(mocker: MockerFixture) -> Dict[str, MagicMock]:
     """Mocks the requests library methods."""
     return {
-        "get": mocker.patch("conidk.core.base.requests.get", autospec=True),
-        "post": mocker.patch("conidk.core.base.requests.post", autospec=True),
-        "put": mocker.patch("conidk.core.base.requests.put", autospec=True),
+        "get": mocker.patch("cxidk.core.base.requests.get", autospec=True),
+        "post": mocker.patch("cxidk.core.base.requests.post", autospec=True),
+        "put": mocker.patch("cxidk.core.base.requests.put", autospec=True),
     }
 
 
 @pytest.fixture
 def mock_randint(mocker: MockerFixture) -> MagicMock:
     """Mocks random.randint to return a fixed value."""
-    return mocker.patch("conidk.wrapper.insights.randint", return_value=1234567890)
+    return mocker.patch("cxidk.wrapper.insights.randint", return_value=1234567890)
 
 
 @pytest.fixture
 def mock_timestamp(mocker: MockerFixture) -> MagicMock:
     """Mocks google.protobuf.timestamp_pb2.Timestamp."""
 
-    mock_ts_class = mocker.patch("conidk.wrapper.insights.Timestamp")
+    mock_ts_class = mocker.patch("cxidk.wrapper.insights.Timestamp")
     mock_instance = mock_ts_class.return_value
     mock_instance.utctimetuple.return_value = time.gmtime(1678886400)
     mock_instance.microsecond = 123456

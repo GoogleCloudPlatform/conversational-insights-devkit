@@ -104,20 +104,20 @@ This process authenticates your GCP principal account with the `gcloud CLI`, all
 The Conversational Insights DevKit is structured into three main components, designed for flexibility and ease of use:
 
 ## Core
-Located in `src/conidk/core`, this folder contains the fundamental building blocks of the DevKit, directly mapping to core resource types of the Conversational Insights API.
+Located in `src/cxidk/core`, this folder contains the fundamental building blocks of the DevKit, directly mapping to core resource types of the Conversational Insights API.
 *   Offers high-level classes and methods for direct API interaction.
 *   Serves as the foundation for constructing more complex tools and workflows.
 *   Manages foundational functionalities such as authentication and global configurations.
 
 ## Wrapper
-The `src/conidk/wrapper` folder provides an additional layer of simplicity on top of the underlying SDK implementations.
+The `src/cxidk/wrapper` folder provides an additional layer of simplicity on top of the underlying SDK implementations.
 *   Streamlines manipulation of global Conversational Insights configurations.
 *   Facilitates single and bulk conversation ingestion, including metadata.
 *   Manages Google Cloud Storage (GCS) blobs (creation, listing, etc.).
 *   Generates transcriptions from audio files using Speech-to-Text V1 and V2.
 
 ## Workflows
-The `src/conidk/workflow` folder introduces new classes and methods designed to address common needs not directly supported by existing API offerings.
+The `src/cxidk/workflow` folder introduces new classes and methods designed to address common needs not directly supported by existing API offerings.
 *   Transforms transcripts from vendors like Genesys Cloud to an Insights-compatible format.
 *   Transforms transcripts from vendors like AWS to an Insights-compatible format.
 *   Performs speaker role recognition within transcripts using Gemini.
@@ -132,9 +132,9 @@ This example demonstrates a complete workflow: transcribing a mono audio file, p
 
 ```python
 import uuid
-from conidk.workflow import role_recognizer as rr
-from conidk.wrapper import speech, format, storage
-from conidk.core import insights
+from cxidk.workflow import role_recognizer as rr
+from cxidk.wrapper import speech, format, storage
+from cxidk.core import insights
 
 # Placeholder values for demonstration. Update these with your actual details.
 _PROBER_PROJECT_ID = "your-gcp-project-id"
@@ -204,7 +204,7 @@ Convert a transcript from a third-party vendor format (e.g., AWS) into a format 
 
 ```python
 import json
-from conidk.wrapper import format
+from cxidk.wrapper import format
 
 # Load your AWS transcript data
 # For a full example, refer to `tests/integration/data/aws_transcript.json`

@@ -21,7 +21,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import jsonschema
 import pytest
 
-from conidk.workflow.format import Dlp, Insights, Speech
+from cxidk.workflow.format import Dlp, Insights, Speech
 
 
 @pytest.fixture(name="mock_auth", autouse=True)
@@ -108,7 +108,7 @@ class TestInsights:
 
     @patch("jsonschema.validate")
     @patch("builtins.open", new_callable=mock_open, read_data='{"key": "value"}')
-    @patch("conidk.workflow.format.datetime")
+    @patch("cxidk.workflow.format.datetime")
     def test_from_aws_no_datetime(
         self, mock_datetime: MagicMock, _: MagicMock, mock_validate: MagicMock
     ) -> None:

@@ -27,16 +27,16 @@ import pandas as pd  # type: ignore
 import pytest
 from pandas.testing import assert_frame_equal
 
-from conidk.wrapper.sheets import Sheets
+from cxidk.wrapper.sheets import Sheets
 
 # --- Mocks and Fixtures ---
 
 
 @pytest.fixture
 def mock_base(mocker: MagicMock) -> Dict[str, MagicMock]:
-    """Mocks the conidk.core.base dependency."""
-    mock_auth = mocker.patch("conidk.wrapper.sheets.base.Auth", autospec=True)
-    mock_config = mocker.patch("conidk.wrapper.sheets.base.Config", autospec=True)
+    """Mocks the cxidk.core.base dependency."""
+    mock_auth = mocker.patch("cxidk.wrapper.sheets.base.Auth", autospec=True)
+    mock_config = mocker.patch("cxidk.wrapper.sheets.base.Config", autospec=True)
     # Ensure the mock auth instance has a 'creds' attribute
     mock_auth.return_value.creds = "mock-credentials"
     return {"Auth": mock_auth, "Config": mock_config}
@@ -45,7 +45,7 @@ def mock_base(mocker: MagicMock) -> Dict[str, MagicMock]:
 @pytest.fixture
 def mock_gspread(mocker: MagicMock) -> MagicMock:
     """Mocks the gspread library."""
-    return mocker.patch("conidk.wrapper.sheets.gspread", autospec=True)
+    return mocker.patch("cxidk.wrapper.sheets.gspread", autospec=True)
 
 
 @pytest.fixture

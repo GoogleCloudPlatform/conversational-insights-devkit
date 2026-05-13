@@ -22,7 +22,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_mock import MockerFixture
 
-from conidk.wrapper.sensitive_data_protection import DLP
+from cxidk.wrapper.sensitive_data_protection import DLP
 
 # --- Constants for Testing ---
 PROJECT_ID = "test-project"
@@ -36,17 +36,17 @@ PARENT = f"projects/{PROJECT_ID}/locations/{LOCATION}"
 @pytest.fixture
 def mock_dlp_client(mocker: MockerFixture) -> MagicMock:
     """Mocks the DlpServiceClient."""
-    return mocker.patch("conidk.wrapper.sensitive_data_protection.dlp_v2.DlpServiceClient")
+    return mocker.patch("cxidk.wrapper.sensitive_data_protection.dlp_v2.DlpServiceClient")
 
 
 @pytest.fixture
 def mock_base(mocker: MockerFixture) -> Dict[str, MagicMock]:
-    """Mocks conidk.core.base.Auth and conidk.core.base.Config."""
+    """Mocks cxidk.core.base.Auth and cxidk.core.base.Config."""
     mock_auth_cls = mocker.patch(
-        "conidk.wrapper.sensitive_data_protection.base.Auth", autospec=True
+        "cxidk.wrapper.sensitive_data_protection.base.Auth", autospec=True
     )
     mock_config_cls = mocker.patch(
-        "conidk.wrapper.sensitive_data_protection.base.Config", autospec=True
+        "cxidk.wrapper.sensitive_data_protection.base.Config", autospec=True
     )
     return {"Auth": mock_auth_cls, "Config": mock_config_cls}
 
