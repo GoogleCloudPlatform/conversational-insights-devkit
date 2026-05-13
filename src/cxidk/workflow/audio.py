@@ -17,7 +17,7 @@
 import enum
 import io
 import logging
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from pydub import AudioSegment #type: ignore
 
@@ -83,7 +83,7 @@ class GenerateAudio:
 
     def bulk(
         self,
-        transcripts: list,
+        transcripts: List[Dict[str, Any]],
         audio_file_path: str,
     ) -> None:
         """Processes multiple transcripts to generate corresponding audio files.
@@ -103,7 +103,7 @@ class GenerateAudio:
     ##TO-DO break down in functions
     def single(
         self,
-        transcript,
+        transcript: Dict[str, Any],
         audio_file_path: str,
         language: Optional[str] = "en-US",
         agent_voice: Optional[str] = "en-US-Chirp3-HD-Iapetus",
@@ -239,7 +239,9 @@ class RedactAudio:
         self.remote_audio_file_name = remote_audio_file_name
 
 
-    def _find_redacted_word_timestamps(self, original_transcript, redacted_transcript):
+    def _find_redacted_word_timestamps(
+        self, original_transcript: Dict[str, Any], redacted_transcript: Dict[str, Any]
+    ) -> List[tuple]:
         """Finds timestamps of redacted words by comparing transcripts.
 
         This method aligns the original transcript (with word-level timestamps)
@@ -320,7 +322,7 @@ class RedactAudio:
 
     def process(
         self,
-        raw_transcript: dict,
+        raw_transcript: Dict[str, Any],
         local_audio_file_path: str,
         redacted_audio_file_path: str,
         inspect_template: Optional[str] = None,

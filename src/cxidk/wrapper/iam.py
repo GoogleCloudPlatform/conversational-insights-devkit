@@ -127,7 +127,7 @@ class Policy:
             request={"resource": self.project_name, "policy": policy_object}
         )
 
-    def list_custom_roles(self) -> Optional[list[str]]:
+    def list_custom_roles(self) -> Optional[List[str]]:
         """Lists the full resource names of custom IAM roles in the project.
         
         Returns:

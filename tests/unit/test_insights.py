@@ -34,6 +34,8 @@ from cxidk.wrapper.insights import (
     Analysis,
     Export,
     AuthorizedViews,
+    Scorecards,
+    ScorecardQuestions,
     Annotators,
     Mediums,
     AgentType,
@@ -543,4 +545,110 @@ class TestAuthorizedViews:
         expected_endpoint = "authorizedViewSets/set1/authorizedViews/view1"
         mock_request_method.assert_called_once_with(
             endpoint=expected_endpoint, method=base.Methods.GET, payload=None
+        )
+
+
+# --- Test Class for Scorecards ---
+
+
+class TestScorecards:
+    """Tests for the Scorecards class using native SDK methods."""
+
+    @pytest.fixture
+    def scorecards_wrapper(self, mock_insights_client: MagicMock) -> Scorecards:
+        """Returns an initialized Scorecards wrapper."""
+        return Scorecards(project_id=PROJECT_ID, location=LOCATION)
+
+    def test_init(self, scorecards_wrapper: Scorecards) -> None:
+        """Test Scorecards initialization."""
+        assert scorecards_wrapper.parent == PARENT
+        assert scorecards_wrapper.client is not None
+
+    def test_create_scorecard(self, scorecards_wrapper: Scorecards) -> None:
+        """Test creating a scorecard."""
+        mock_scorecard = types.QaScorecard(display_name="Native Scorecard")
+        scorecards_wrapper.create_scorecard(
+            qa_scorecard=mock_scorecard, qa_scorecard_id="native-id-123"
+        )
+        scorecards_wrapper.client.create_qa_scorecard.assert_called_once_with(
+            parent=PARENT,
+            qa_scorecard=mock_scorecard,
+            qa_scorecard_id="native-id-123",
+        )
+
+    def test_list_scorecards(self, scorecards_wrapper: Scorecards) -> None:
+        """Test listing scorecards."""
+        scorecards_wrapper.list_scorecards()
+        scorecards_wrapper.client.list_qa_scorecards.assert_called_once_with(
+            parent=PARENT
+        )
+
+    def test_get_scorecard(self, scorecards_wrapper: Scorecards) -> None:
+        """Test getting a scorecard."""
+        scorecards_wrapper.get_scorecard(scorecard_id="sc-123")
+        expected_name = f"{PARENT}/qaScorecards/sc-123"
+        scorecards_wrapper.client.get_qa_scorecard.assert_called_once_with(
+            name=expected_name
+        )
+
+    def test_delete_scorecard(self, scorecards_wrapper: Scorecards) -> None:
+        """Test deleting a scorecard."""
+        scorecards_wrapper.delete_scorecard(scorecard_id="sc-123")
+        expected_name = f"{PARENT}/qaScorecards/sc-123"
+        scorecards_wrapper.client.delete_qa_scorecard.assert_called_once_with(
+            name=expected_name
+        )
+
+
+# --- Test Class for ScorecardQuestions ---
+
+
+class TestScorecardQuestions:
+    """Tests for the ScorecardQuestions class using native SDK methods."""
+
+    @pytest.fixture
+    def questions_wrapper(self, mock_insights_client: MagicMock) -> ScorecardQuestions:
+        """Returns an initialized ScorecardQuestions wrapper."""
+        return ScorecardQuestions(
+            project_id=PROJECT_ID, location=LOCATION, scorecard_id="sc-123"
+        )
+
+    def test_init(self, questions_wrapper: ScorecardQuestions) -> None:
+        """Test ScorecardQuestions initialization."""
+        assert questions_wrapper.parent == f"{PARENT}/qaScorecards/sc-123"
+        assert questions_wrapper.client is not None
+
+    def test_create_question(self, questions_wrapper: ScorecardQuestions) -> None:
+        """Test creating a question."""
+        mock_question = types.QaQuestion(display_name="Native Q1")
+        questions_wrapper.create_question(
+            qa_question=mock_question, qa_question_id="q-123"
+        )
+        questions_wrapper.client.create_qa_question.assert_called_once_with(
+            parent=questions_wrapper.parent,
+            qa_question=mock_question,
+            qa_question_id="q-123",
+        )
+
+    def test_list_questions(self, questions_wrapper: ScorecardQuestions) -> None:
+        """Test listing questions."""
+        questions_wrapper.list_questions()
+        questions_wrapper.client.list_qa_questions.assert_called_once_with(
+            parent=questions_wrapper.parent
+        )
+
+    def test_get_question(self, questions_wrapper: ScorecardQuestions) -> None:
+        """Test getting a question."""
+        questions_wrapper.get_question(question_id="q-123")
+        expected_name = f"{questions_wrapper.parent}/qaQuestions/q-123"
+        questions_wrapper.client.get_qa_question.assert_called_once_with(
+            name=expected_name
+        )
+
+    def test_delete_question(self, questions_wrapper: ScorecardQuestions) -> None:
+        """Test deleting a question."""
+        questions_wrapper.delete_question(question_id="q-123")
+        expected_name = f"{questions_wrapper.parent}/qaQuestions/q-123"
+        questions_wrapper.client.delete_qa_question.assert_called_once_with(
+            name=expected_name
         )

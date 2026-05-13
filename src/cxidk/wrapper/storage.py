@@ -20,7 +20,7 @@ handling authentication and client setup.
 """
 
 import enum
-from typing import Optional, Union
+from typing import List, Optional, Union
 from google.cloud.storage import Client #type: ignore
 
 from cxidk.core import base
@@ -91,7 +91,7 @@ class Gcs:
             return blob.download_as_bytes()
         return blob.download_as_string().decode("utf-8")
 
-    def list_bucket(self) -> list[str]:
+    def list_bucket(self) -> List[str]:
         """Lists blob names in the bucket.
 
         Returns:

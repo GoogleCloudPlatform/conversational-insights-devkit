@@ -16,6 +16,7 @@
 
 import json
 import pathlib
+from typing import Any, Dict
 from vertexai.generative_models import GenerationConfig, GenerativeModel
 
 
@@ -142,7 +143,7 @@ class RoleRecognizer:
         if not self.prompt:
             self.prompt = self._DEFAULT_PROMPT
 
-    def predict_roles(self, conversation: dict) -> dict:
+    def predict_roles(self, conversation: Dict[str, Any]) -> Dict[str, Any]:
         """Predicts roles in a conversation transcript.
         
         Args:
@@ -160,7 +161,7 @@ class RoleRecognizer:
         )
         return json.loads(response.text)
 
-    def combine(self, conversation: dict, roles: dict) -> str:
+    def combine(self, conversation: Dict[str, Any], roles: Dict[str, Any]) -> str:
         """Combines the original transcript with the predicted roles.
 
         This method updates the input conversation dictionary by assigning the

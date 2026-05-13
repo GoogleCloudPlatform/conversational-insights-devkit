@@ -22,7 +22,7 @@ data from text and structured data.
 
 # pylint: disable= no-member
 import enum
-from typing import Optional
+from typing import List, Optional
 from google.cloud import dlp_v2
 from cxidk.core import base
 
@@ -74,7 +74,7 @@ class DLP:
         template_id: str = "default_insights_template",
         display_name: str = "Default Insights Template",
         description: str = "Default Insights Template",
-        info_types: Optional[list[str]] = None,
+        info_types: Optional[List[str]] = None,
     ) -> str:
         """Creates a DLP inspect template.
         Args:
@@ -148,7 +148,7 @@ class DLP:
         template_id: str = "default_deidentify_template",
         display_name: str = "Default deidentify template",
         description: str = "Default deidentify template",
-        info_types: Optional[list[str]] = None,
+        info_types: Optional[List[str]] = None,
     ) -> str:
         """Creates a DLP de-identify template.
         This example creates a template that replaces specified infoTypes with
