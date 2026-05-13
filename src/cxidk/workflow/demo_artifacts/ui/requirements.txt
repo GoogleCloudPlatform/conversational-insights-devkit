@@ -2,6 +2,6 @@ Flask==2.3.3
 Flask-Cors==4.0.0
 google-cloud-storage==2.11.0
 gunicorn==21.2.0
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 google-api-core==2.14.0
 google-cloud-contact-center-insights==1.10.0
