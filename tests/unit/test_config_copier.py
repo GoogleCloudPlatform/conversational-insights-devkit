@@ -18,17 +18,17 @@ from unittest.mock import MagicMock
 import pytest
 from google.cloud.contact_center_insights_v1 import types
 from pytest_mock import MockerFixture
-from cxidk.workflow.scorecard_copier import Copier
+from cxidk.workflow.config_copier import ScorecardCopier
 
 
 @pytest.fixture
 def mock_wrappers(mocker: MockerFixture) -> MagicMock:
     """Mocks insights.Scorecards and insights.ScorecardQuestions wrappers."""
     mock_scorecards_cls = mocker.patch(
-        "cxidk.workflow.scorecard_copier.insights.Scorecards", autospec=True
+        "cxidk.workflow.config_copier.insights.Scorecards", autospec=True
     )
     mock_questions_cls = mocker.patch(
-        "cxidk.workflow.scorecard_copier.insights.ScorecardQuestions", autospec=True
+        "cxidk.workflow.config_copier.insights.ScorecardQuestions", autospec=True
     )
 
     # Setup source scorecard return
@@ -70,8 +70,8 @@ def mock_wrappers(mocker: MockerFixture) -> MagicMock:
 
 
 def test_copier_init(mock_wrappers: MagicMock) -> None:
-    """Test Copier client initialization."""
-    copier = Copier(
+    """Test ScorecardCopier client initialization."""
+    copier = ScorecardCopier(
         source_project_id="src-proj",
         source_location="us",
         dest_project_id="dest-proj",
@@ -84,7 +84,7 @@ def test_copier_init(mock_wrappers: MagicMock) -> None:
 
 def test_copy_scorecard(mock_wrappers: MagicMock) -> None:
     """Test copying a full scorecard and its questions."""
-    copier = Copier(
+    copier = ScorecardCopier(
         source_project_id="src-proj",
         source_location="us",
         dest_project_id="dest-proj",

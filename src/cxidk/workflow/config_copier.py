@@ -21,7 +21,7 @@ from cxidk.core import base
 from cxidk.wrapper import insights
 
 
-class Copier:
+class ScorecardCopier:
     """Copies QA Scorecard metadata between Google Cloud projects and locations.
 
     This class automates retrieving a source QA Scorecard and all its associated
@@ -46,7 +46,7 @@ class Copier:
         auth: Optional[base.Auth] = None,
         config: Optional[base.Config] = None,
     ) -> None:
-        """Initializes the Copier workflow client.
+        """Initializes the ScorecardCopier workflow client.
 
         Args:
             source_project_id: The source GCP project ID.
