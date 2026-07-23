@@ -14,6 +14,9 @@
 
 """A wrapper for the Google Cloud Vertex AI Gemini API."""
 
+import logging
+import random
+import time
 from typing import Any, Dict, Optional
 from strenum import StrEnum
 from google.genai import types
@@ -128,23 +131,44 @@ class Generator:
             The generated content as a string.
         """
 
-        raw_gemini_response = self.client.models.generate_content(
-            model=self.version,
-            contents=[prompt],
-            # https://ai.google.dev/api/generate-content#generationconfig
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                candidate_count=1,
-                temperature=temperature,
-                top_k=top_k,
-                top_p=top_p,
-                response_mime_type=output_mime_type,
-                response_schema=output_schema,
-                safety_settings=_DEFAULT_SAFETY_SETTINGS,
-            ),
-        )
+        raw_gemini_response = None
+        for attempt in range(6):
+            try:
+                raw_gemini_response = self.client.models.generate_content(
+                    model=self.version,
+                    contents=[prompt],
+                    # https://ai.google.dev/api/generate-content#generationconfig
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        candidate_count=1,
+                        temperature=temperature,
+                        top_k=top_k,
+                        top_p=top_p,
+                        response_mime_type=output_mime_type,
+                        response_schema=output_schema,
+                        safety_settings=_DEFAULT_SAFETY_SETTINGS,
+                    ),
+                )
+                break
+            except Exception as e:
+                if (
+                    "429" in str(e)
+                    or "RESOURCE_EXHAUSTED" in str(e)
+                    or "Too Many Requests" in str(e)
+                ) and attempt < 5:
+                    sleep_time = (2 ** attempt) + random.uniform(1.0, 3.0)
+                    logging.warning(
+                        "429 Rate limited by Gemini API. Retrying in %.1f seconds... (attempt %s/5)",
+                        sleep_time,
+                        attempt + 1,
+                    )
+                    time.sleep(sleep_time)
+                else:
+                    raise e
+
         if (
-            raw_gemini_response.candidates
+            raw_gemini_response
+            and raw_gemini_response.candidates
             and raw_gemini_response.candidates[0].content
             and raw_gemini_response.candidates[0].content.parts
         ):
