@@ -317,6 +317,20 @@ class Config:
 
         return str(polysynth_environments[self.environment])
 
+    def set_agent_studio_endpoint(self) -> str:
+        """Constructs the base URL for the Agent Studio API.
+
+        Returns:
+            The base URL string for the API endpoint based on the
+            configured environment.
+        """
+        agent_studio_environments = {
+            Environments.PRODUCTION: "https://ces.googleapis.com/",
+            Environments.STAGING: "https://staging-ces-googleapis.sandbox.google.com/",
+        }
+
+        return str(agent_studio_environments[self.environment])
+
 
 class Request:
     """A wrapper for making authenticated REST API requests."""
