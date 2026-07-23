@@ -209,6 +209,54 @@ class TestPolySynth:
         assert response == "response1\nresponse2\n"
 
 
+@pytest.mark.usefixtures("mock_polysynth_auth_fixture")
+class TestAgentStudio:
+    """Unit tests for the AgentStudio agent wrapper."""
+
+    def test_agent_studio_init(self) -> None:
+        """Test AgentStudio initialization."""
+        client = agents.AgentStudio(project_id="test_project", location="us-central1")
+
+        assert client.project_id == "test_project"
+        assert client.location == "us-central1"
+        assert client.auth is not None
+        assert client.config is not None
+        assert client.credentials_token == "test_token"
+
+    def test_agent_studio_properties(self) -> None:
+        """Test AgentStudio properties."""
+        client = agents.AgentStudio(project_id="test_project", location="us-central1")
+
+        assert client.parent == "projects/test_project/locations/us-central1"
+        assert (
+            client.base_url
+            == "https://staging-ces-googleapis.sandbox.google.com/v1/"
+        )
+
+    def test_agent_studio_create_session(self) -> None:
+        """Test AgentStudio create_session."""
+        client = agents.AgentStudio(project_id="test_project", location="us-central1")
+        session_id = client.create_session(agent_id="my_agent", unique_id="session123")
+
+        assert (
+            session_id
+            == "projects/test_project/locations/us-central1/apps/my_agent/sessions/session123"
+        )
+        assert client.current_session_id == session_id
+
+    @patch.object(agents.AgentStudio, "_make_request")
+    def test_agent_studio_send_message(self, mock_make_request: MagicMock) -> None:
+        """Test AgentStudio send_message."""
+        mock_make_request.return_value = {
+            "outputs": [{"text": "hello back"}]
+        }
+
+        client = agents.AgentStudio(project_id="test_project", location="us-central1")
+        response = client.send_message("hello", session_id="session1")
+
+        assert response == "hello back\n"
+
+
 @patch("cxidk.wrapper.agents.ConversationsClient")
 @patch("cxidk.wrapper.agents.ParticipantsClient")
 def test_dialogflow_init(

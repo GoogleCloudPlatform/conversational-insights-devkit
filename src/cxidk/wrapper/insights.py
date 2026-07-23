@@ -22,7 +22,7 @@ authorized views.
 # pylint: disable=too-many-lines
 import enum
 from random import randint
-from typing import Dict, MutableMapping, Optional, List
+from typing import Dict, MutableMapping, Optional, List, Any
 
 from google.cloud import contact_center_insights_v1
 from google.cloud.contact_center_insights_v1 import types
@@ -1020,3 +1020,185 @@ class LongRunningOperation:
 
         cancel_request = CancelOperationRequest(name=self.operation_name)
         self.client.cancel_operation(request=cancel_request)
+
+class Scorecards:
+    """Manages QA scorecards in Contact Center AI Insights.
+
+    This class provides methods to create, list, get, and delete QA scorecards
+    using native Python SDK methods.
+
+    Attributes:
+        project_id: The Google Cloud project ID.
+        location: The Google Cloud location.
+        parent: The parent resource name.
+        client: The ContactCenterInsightsClient instance.
+    """
+
+    def __init__(
+        self,
+        project_id: str,
+        location: str,
+        auth: Optional[base.Auth] = None,
+        config: Optional[base.Config] = None,
+    ) -> None:
+        """Initializes the Scorecards client.
+
+        Args:
+            project_id: The Google Cloud project ID.
+            location: The Google Cloud location where the operations are running.
+            auth: An optional, pre-configured authentication object.
+            config: An optional, pre-configured configuration object.
+        """
+        self.project_id = project_id
+        self.location = location
+        self.auth = auth or base.Auth()
+        self.config = config or base.Config()
+        self.parent = f"projects/{self.project_id}/locations/{self.location}"
+
+        self.client = contact_center_insights_v1.ContactCenterInsightsClient(
+            client_options=self.config.set_insights_endpoint()
+        )
+
+    def create_scorecard(
+        self,
+        qa_scorecard: types.QaScorecard,
+        qa_scorecard_id: Optional[str] = None,
+    ) -> types.QaScorecard:
+        """Creates a new QA scorecard using the native SDK.
+
+        Args:
+            qa_scorecard: A populated types.QaScorecard object.
+            qa_scorecard_id: Optional user-specified ID for the scorecard.
+
+        Returns:
+            The created types.QaScorecard resource.
+        """
+        return self.client.create_qa_scorecard(
+            parent=self.parent,
+            qa_scorecard=qa_scorecard,
+            qa_scorecard_id=qa_scorecard_id,
+        )
+
+    def list_scorecards(self) -> Any:
+        """Lists all QA scorecards in the project/location using the native SDK.
+
+        Returns:
+            An iterable Pager containing types.QaScorecard resources.
+        """
+        return self.client.list_qa_scorecards(parent=self.parent)
+
+    def get_scorecard(self, scorecard_id: str) -> types.QaScorecard:
+        """Retrieves a specific QA scorecard by its ID using the native SDK.
+
+        Args:
+            scorecard_id: The ID of the scorecard.
+
+        Returns:
+            The requested types.QaScorecard resource.
+        """
+        name = f"{self.parent}/qaScorecards/{scorecard_id}"
+        return self.client.get_qa_scorecard(name=name)
+
+    def delete_scorecard(self, scorecard_id: str) -> None:
+        """Deletes a specific QA scorecard using the native SDK.
+
+        Args:
+            scorecard_id: The ID of the scorecard to delete.
+        """
+        name = f"{self.parent}/qaScorecards/{scorecard_id}"
+        self.client.delete_qa_scorecard(name=name)
+
+
+class ScorecardQuestions:
+    """Manages QA scorecard questions in Contact Center AI Insights.
+
+    This class provides methods to create, list, get, and delete QA questions
+    within a specific scorecard using native Python SDK methods.
+
+    Attributes:
+        project_id: The Google Cloud project ID.
+        location: The Google Cloud location.
+        scorecard_id: The parent scorecard ID.
+        parent: The parent scorecard resource name.
+        client: The ContactCenterInsightsClient instance.
+    """
+
+    def __init__(
+        self,
+        project_id: str,
+        location: str,
+        scorecard_id: str,
+        auth: Optional[base.Auth] = None,
+        config: Optional[base.Config] = None,
+    ) -> None:
+        """Initializes the ScorecardQuestions client.
+
+        Args:
+            project_id: The Google Cloud project ID.
+            location: The Google Cloud location.
+            scorecard_id: The parent scorecard ID.
+            auth: An optional, pre-configured authentication object.
+            config: An optional, pre-configured configuration object.
+        """
+        self.project_id = project_id
+        self.location = location
+        self.scorecard_id = scorecard_id
+        self.auth = auth or base.Auth()
+        self.config = config or base.Config()
+        self.parent = (
+            f"projects/{self.project_id}/locations/{self.location}"
+            f"/qaScorecards/{self.scorecard_id}"
+        )
+
+        self.client = contact_center_insights_v1.ContactCenterInsightsClient(
+            client_options=self.config.set_insights_endpoint()
+        )
+
+    def create_question(
+        self,
+        qa_question: types.QaQuestion,
+        qa_question_id: Optional[str] = None,
+    ) -> types.QaQuestion:
+        """Creates a new QA question using the native SDK.
+
+        Args:
+            qa_question: A populated types.QaQuestion object.
+            qa_question_id: Optional user-specified ID for the question.
+
+        Returns:
+            The created types.QaQuestion resource.
+        """
+        return self.client.create_qa_question(
+            parent=self.parent,
+            qa_question=qa_question,
+            qa_question_id=qa_question_id,
+        )
+
+    def list_questions(self) -> Any:
+        """Lists all QA questions within the scorecard using the native SDK.
+
+        Returns:
+            An iterable Pager containing types.QaQuestion resources.
+        """
+        return self.client.list_qa_questions(parent=self.parent)
+
+    def get_question(self, question_id: str) -> types.QaQuestion:
+        """Retrieves a specific QA question by its ID using the native SDK.
+
+        Args:
+            question_id: The ID of the question.
+
+        Returns:
+            The requested types.QaQuestion resource.
+        """
+        name = f"{self.parent}/qaQuestions/{question_id}"
+        return self.client.get_qa_question(name=name)
+
+    def delete_question(self, question_id: str) -> None:
+        """Deletes a specific QA question using the native SDK.
+
+        Args:
+            question_id: The ID of the question to delete.
+        """
+        name = f"{self.parent}/qaQuestions/{question_id}"
+        self.client.delete_qa_question(name=name)

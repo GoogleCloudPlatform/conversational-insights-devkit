@@ -18,7 +18,7 @@ import json
 import pathlib
 import random
 import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from strenum import StrEnum
 
@@ -127,10 +127,10 @@ class Generator:
 
     def _assign_probabilities(
         self,
-        range_long_convo: list,
-        range_bad_sentiment: list,
-        range_bad_performance: list,
-    ):
+        range_long_convo: list[float],
+        range_bad_sentiment: list[float],
+        range_bad_performance: list[float],
+    ) -> tuple[bool, bool, bool]:
         """Determines boolean flags based on probability ranges.
 
         This method uses random sampling against provided probability ranges to
@@ -174,10 +174,10 @@ class Generator:
 
     def _set_llm_parameters(
         self,
-        range_temperature: list,
-        range_topp: list,
-        range_topk: list,
-    ):
+        range_temperature: list[float],
+        range_topp: list[float],
+        range_topk: list[int],
+    ) -> tuple[float, float, int]:
         """Sets generative model parameters by sampling from specified ranges.
 
         This method randomizes the temperature, top-p, and top-k parameters for
@@ -208,7 +208,7 @@ class Generator:
 
     def _set_prompt_parts(
         self,
-        parameters: dict
+        parameters: dict[str, Any]
     ) -> dict[str, str]:
         """Constructs a dictionary of prompt components based on input parameters.
 
@@ -318,7 +318,7 @@ class Generator:
     def create_parameters(
         self,
         generation_profile: Optional[dict] = None,
-        randomize_select: Optional[List] = None,
+        randomize_select: Optional[list] = None,
     ) -> dict:
         """Create a set of random parameters for generating conversations.
 
@@ -394,7 +394,7 @@ class Generator:
 
     def create_conversation(
         self,
-        parameters: Optional[dict] = None,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Creates a complete conversation transcript based on a set of parameters.
 
@@ -408,7 +408,7 @@ class Generator:
         if parameters is None:
             parameters = self.create_parameters()
 
-        prompt_parts: list[str] = []
+        prompt_parts: List[str] = []
         schema_path = pathlib.Path(__file__).parent / "utils/schemas/conversation.json"
         with open(schema_path, "r", encoding="utf-8") as f:
             conversation_schema = json.load(f)
@@ -440,7 +440,7 @@ class Generator:
     def create_turn(
         self,
         parameters: Optional[dict] = None,
-        conversation_history: Optional[list] = None,
+        conversation_history: Optional[List[dict]] = None,
     ) -> str:
         """Generates the next customer turn in a conversation.
 
@@ -458,7 +458,7 @@ class Generator:
         if parameters is None:
             parameters = self.create_parameters()
 
-        prompt_parts: list[str] = []
+        prompt_parts: List[str] = []
         parts = self._set_prompt_parts(parameters=parameters)
 
         schema_path = pathlib.Path(__file__).parent / "utils/schemas/turn.json"
@@ -499,9 +499,9 @@ class Generator:
         number_of_agents: Optional[int] = 80,
         number_of_teams: Optional[int] = 8,
         agent_team_distribution: Optional[AgentTeamDistribution] = None,
-        sentiment_distribution: Optional[dict] = None,
-        traits: Optional[list] = None,
-    ) -> dict:
+        sentiment_distribution: Optional[Dict[str, Any]] = None,
+        traits: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
         """Generates a list of synthetic agent profiles.
 
         This method creates a list of agent profiles, including details like
@@ -555,9 +555,9 @@ class Generator:
 
     def create_metadata(
         self,
-        parameters: Optional[dict] = None,
-        agents: Optional[dict] = None,
-    ) -> dict:
+        parameters: Optional[Dict[str, Any]] = None,
+        agents: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Generates metadata for a conversation.
 
         This method creates a metadata dictionary for a conversation, including

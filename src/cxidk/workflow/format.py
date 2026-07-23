@@ -114,8 +114,8 @@ class Insights:
         """Initializes the Insights format converter."""
 
     def from_aws(
-        self, transcript: dict, transcript_datetime_string: Optional[str] = None
-    ) -> dict:
+        self, transcript: Dict[str, Any], transcript_datetime_string: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Converts an AWS Transcribe transcript to the Insights format.
 
         Since AWS transcripts use a millisecond offset from the start, this
@@ -148,7 +148,7 @@ class Insights:
         # validate the transcript with aws_schema
         jsonschema.validate(instance=transcript, schema=aws_schema)
 
-        insights_transcript: Dict[str, list[dict]] = {"entries": []}
+        insights_transcript: Dict[str, List[Dict[str, Any]]] = {"entries": []}
 
         for entry in transcript["Transcript"]:
             user_id = 1 if entry["ParticipantId"] == "AGENT" else 2
@@ -165,7 +165,7 @@ class Insights:
 
         return insights_transcript
 
-    def from_genesys_cloud(self, transcript: dict) -> dict:
+    def from_genesys_cloud(self, transcript: Dict[str, Any]) -> Dict[str, Any]:
         """Converts a Genesys Cloud transcript to the Insights format.
 
         This method maps participant roles and converts millisecond-based
@@ -187,7 +187,7 @@ class Insights:
         # validate the transcript with genesys_cloud_schema
         jsonschema.validate(instance=transcript, schema=genesys_cloud_schema)
 
-        insights_transcript: Dict[str, list[dict]] = {"entries": []}
+        insights_transcript: Dict[str, List[Dict[str, Any]]] = {"entries": []}
 
         for entry in transcript["transcripts"][0]["phrases"]:
             role = (
@@ -264,7 +264,7 @@ class Speech:
 
     def v1_recognizer_to_dict(
         self, recognizer_response: types_v1.LongRunningRecognizeResponse
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Converts a Speech-to-Text v1 response object to a dictionary.
 
         Args:
@@ -314,7 +314,7 @@ class Speech:
 
     def v2_recognizer_to_dict(
         self, recognizer_response: types_v2.cloud_speech.RecognizeResponse
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Converts a Speech-to-Text v2 response object to a dictionary.
 
         Args:
@@ -330,7 +330,7 @@ class Speech:
 
     def v2_json_to_dict(
         self,
-        v2_json: dict,
+        v2_json: Dict[str, Any],
     ) -> Dict[str, List[Dict[str, Any]]]:
         """Extracts transcript text from a Speech v2 JSON dictionary.
 

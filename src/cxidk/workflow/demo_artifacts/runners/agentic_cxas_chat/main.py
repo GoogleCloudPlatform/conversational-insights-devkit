@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Runner that generates the human to va conversations"""
+"""Runner that generates the human to virtual agent conversations using Agent Studio."""
 
 import json
 import logging
@@ -27,8 +27,9 @@ from cxidk.wrapper import agents
 logging.basicConfig(level=logging.INFO)
 
 _CONFIG_PATH = "insights-pipeline-producer-configs"
-_CONFIG_FILES = ["projects.json","demos.json"]
+_CONFIG_FILES = ["projects.json", "demos.json"]
 _PRODUCER_PROJECT = "insights-pipeline-producer"
+
 
 def import_config():
     """Import config"""
@@ -77,7 +78,7 @@ def _handle_conversation_turn(generator, parameters, context):
 
 
 def _run_conversation(project_id, virtual_agent, generator, parameters):
-    """Runs a single conversation with a PolySynth agent."""
+    """Runs a single conversation with an Agent Studio agent."""
     context = [
         {
             "role": "system",
@@ -85,16 +86,16 @@ def _run_conversation(project_id, virtual_agent, generator, parameters):
         },
         {
             "role": "system",
-            "message": "Always start the conversations with greetings and stating what do you need help with", # pylint: disable=C0301
+            "message": "Always start the conversations with greetings and stating what do you need help with",  # pylint: disable=C0301
         },
     ]
 
-    polysynth = agents.PolySynth(
+    agent_studio = agents.AgentStudio(
         project_id=project_id,
         location=virtual_agent["location"],
         env=virtual_agent["environment"],
     )
-    session = polysynth.create_session(agent_id=virtual_agent["agent"])
+    session = agent_studio.create_session(agent_id=virtual_agent["agent"])
 
     while True:
         generated_input = _handle_conversation_turn(generator, parameters, context)
@@ -103,7 +104,7 @@ def _run_conversation(project_id, virtual_agent, generator, parameters):
             break
 
         try:
-            response = polysynth.send_message(
+            response = agent_studio.send_message(
                 session_id=session, text=generated_input["message"].lower()
             )
             if not response:
@@ -118,7 +119,7 @@ def _run_conversation(project_id, virtual_agent, generator, parameters):
 def _process_virtual_agent(project, virtual_agent, generator):
     """Processes a virtual agent to generate conversations."""
     conversations_generated = 0
-    if virtual_agent["type"] != "next-gen":
+    if virtual_agent["type"] not in ["next-gen", "agent-studio", "cxas"]:
         return conversations_generated
 
     project_id = project["project_id"]
@@ -158,8 +159,8 @@ def _process_virtual_agent(project, virtual_agent, generator):
     return conversations_generated
 
 
-#Args is reqd for the cloud function to properly run
-def runner(args): # pylint: disable=unused-argument
+# Args is reqd for the cloud function to properly run
+def runner(args):  # pylint: disable=unused-argument
     """Runner: The code that will run in the cloud function"""
 
     conversations_generated = 0
