@@ -73,11 +73,11 @@ def _handle_conversation_turn(generator, parameters, context):
     )
     generated_input["role"] = "customer"
     context.append(generated_input)
-    time.sleep(random.uniform(5, 40))
+    time.sleep(random.uniform(3, 5))
     return generated_input
 
 
-def _run_conversation(project_id, virtual_agent, generator, parameters):
+def _run_conversation(project_id, location, virtual_agent, generator, parameters):
     """Runs a single conversation with an Agent Studio agent."""
     context = [
         {
@@ -88,30 +88,42 @@ def _run_conversation(project_id, virtual_agent, generator, parameters):
             "role": "system",
             "message": "Always start the conversations with greetings and stating what do you need help with",  # pylint: disable=C0301
         },
+        {
+            "role": "system",
+            "message": "Conversations must have MULTIPLE turns (above 15 turns) and be about internet_down, moving_address, bill_too_high and upgrade_elegibility, you can also start in one topic and move to a different one, dont accept human help easily"
+        },
     ]
 
     agent_studio = agents.AgentStudio(
         project_id=project_id,
-        location=virtual_agent["location"],
+        location=location,
         env=virtual_agent["environment"],
     )
     session = agent_studio.create_session(agent_id=virtual_agent["agent"])
+    logging.info(session)
 
     while True:
         generated_input = _handle_conversation_turn(generator, parameters, context)
+        user_msg = generated_input["message"].strip()
 
-        if generated_input["message"].lower() == "quit":
+        if user_msg.lower() == "quit":
+            logging.info("Customer ended conversation: QUIT")
             break
+
+        logging.info("Customer Turn: %s", user_msg)
 
         try:
             response = agent_studio.send_message(
-                session_id=session, text=generated_input["message"].lower()
+                session_id=session, text=user_msg.lower()
             )
-            if not response:
+            if not response or response == "session ended":
+                logging.info("Agent Studio session ended")
                 break
+
+            logging.info("Agent Studio Turn: %s", response.strip())
             context.append({"message": response, "role": "AGENT"})
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logging.info(e)
+            logging.info("Exception during send_message: %s", e)
             break
     return 1
 
@@ -123,6 +135,7 @@ def _process_virtual_agent(project, virtual_agent, generator):
         return conversations_generated
 
     project_id = project["project_id"]
+    location = virtual_agent.get("location") if virtual_agent.get("location") else project.get("location", "us")
     logging.info(
         "------> Configuration found for %s project and %s virtual agent found",
         project_id,
@@ -135,6 +148,7 @@ def _process_virtual_agent(project, virtual_agent, generator):
     ranger = random.randint(
         0, int(project["generation_profile"]["max_conversations_per_run"]["agentic"])
     )
+    ranger = random.randint(30, 50)
 
     logging.info(
         "------> Generating %s conversations for agent %s with the %s type on %s",
@@ -154,7 +168,7 @@ def _process_virtual_agent(project, virtual_agent, generator):
             virtual_agent["agent"],
         )
         conversations_generated += _run_conversation(
-            project_id, virtual_agent, generator, parameters
+            project_id, location, virtual_agent, generator, parameters
         )
     return conversations_generated
 
@@ -184,6 +198,13 @@ def runner(args):  # pylint: disable=unused-argument
                 continue
 
             for virtual_agent in project["virtual_agents"]:
+                if virtual_agent["agent"] == '' or len(virtual_agent["agent"]) == 0:
+                    logging.info(
+                        "Virtual agent not valid for the project %s configuration.",
+                        project["project_id"]
+                    )
+                    continue
+
                 conversations_generated += _process_virtual_agent(
                     project, virtual_agent, generator
                 )

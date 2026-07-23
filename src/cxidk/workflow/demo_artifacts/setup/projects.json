@@ -55,7 +55,7 @@
                 {
                     "agent": "90435a01-f8a0-42e9-a1e8-4a6417e9bfb4",
                     "conversation_profile": "",
-                    "location": "",
+                    "location": "us",
                     "type": "next-gen",
                     "environment": "prod",
                     "topics": [
