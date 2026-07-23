@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cxidk"
-version = "1.0.0"
+version = "1.1.2"
 authors = [
   { name="Thiago Alberto", email="alrrtas@gmail.com" },
 ]
