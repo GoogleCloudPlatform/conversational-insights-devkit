@@ -201,3 +201,35 @@ def test_content_handles_empty_or_malformed_responses(
     response_text = generator.content(prompt=TEST_PROMPT)
 
     assert response_text == ""
+
+
+@patch("time.sleep", return_value=None)
+def test_content_retry_on_429_success(
+    mock_sleep: MagicMock, mock_genai_client: MagicMock
+) -> None:
+    """
+    Verifies that the content method retries on HTTP 429 errors and succeeds after retries.
+    """
+    mock_part = MagicMock()
+    mock_part.text = EXPECTED_RESPONSE_TEXT
+    mock_content = MagicMock()
+    mock_content.parts = [mock_part]
+    mock_candidate = MagicMock()
+    mock_candidate.content = mock_content
+    mock_success_response = MagicMock()
+    mock_success_response.candidates = [mock_candidate]
+
+    # Raise 429 error on first 2 calls, then succeed on 3rd call
+    mock_genai_client.models.generate_content.side_effect = [
+        Exception("429 RESOURCE_EXHAUSTED: Rate limit exceeded"),
+        Exception("429 Too Many Requests"),
+        mock_success_response,
+    ]
+
+    generator = Generator(project_id=TEST_PROJECT_ID, location=TEST_LOCATION)
+    response_text = generator.content(prompt=TEST_PROMPT)
+
+    assert response_text == EXPECTED_RESPONSE_TEXT
+    assert mock_genai_client.models.generate_content.call_count == 3
+    assert mock_sleep.call_count == 2
+
