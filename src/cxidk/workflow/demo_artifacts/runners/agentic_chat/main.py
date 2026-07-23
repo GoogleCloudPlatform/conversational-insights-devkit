@@ -35,9 +35,7 @@ def import_config():
     gcs = storage.Gcs(project_id=_PRODUCER_PROJECT, bucket_name=_CONFIG_PATH)
     configs = []
     for config_file in _CONFIG_FILES:
-        configs.append(
-            gcs.download_blob(config_file).decode("utf-8")
-        )
+        configs.append(gcs.download_blob(config_file))
     return configs
 
 def file_name_generator():
