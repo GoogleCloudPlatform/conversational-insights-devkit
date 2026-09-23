@@ -103,7 +103,13 @@ def _run_conversation(project_id, location, virtual_agent, generator, parameters
     logging.info(session)
 
     while True:
-        generated_input = _handle_conversation_turn(generator, parameters, context)
+        try:
+            generated_input = _handle_conversation_turn(generator, parameters, context)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logging.error("Exception during turn generation: %s", e)
+            time.sleep(5)
+            break
+
         user_msg = generated_input["message"].strip()
 
         if user_msg.lower() == "quit":
@@ -119,7 +125,6 @@ def _run_conversation(project_id, location, virtual_agent, generator, parameters
             if not response or response == "session ended":
                 logging.info("Agent Studio session ended")
                 break
-
             logging.info("Agent Studio Turn: %s", response.strip())
             context.append({"message": response, "role": "AGENT"})
         except Exception as e:  # pylint: disable=broad-exception-caught
@@ -148,7 +153,7 @@ def _process_virtual_agent(project, virtual_agent, generator):
     ranger = random.randint(
         0, int(project["generation_profile"]["max_conversations_per_run"]["agentic"])
     )
-    ranger = random.randint(30, 50)
+    ranger = random.randint(5, 10)
 
     logging.info(
         "------> Generating %s conversations for agent %s with the %s type on %s",

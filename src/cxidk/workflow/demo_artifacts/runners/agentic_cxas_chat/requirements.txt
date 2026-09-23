@@ -1,1 +1,1 @@
-cxidk
+cxidk>=1.1.5

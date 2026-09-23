@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 _CONFIG_PATH = "insights-pipeline-producer-configs"
-_CONFIG_FILES = ["projects.json","demos.json"]
+_CONFIG_FILES = ["demos.json", "projects.json"]
 _PRODUCER_PROJECT = "insights-pipeline-producer"
 
 _FILE_EXTENSION = ".json"

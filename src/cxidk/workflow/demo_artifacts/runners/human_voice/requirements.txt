@@ -1,1 +1,16 @@
+functions-framework>=3.0.0
+google-cloud-storage>=3.9.0
+google-cloud-contact-center-insights>=1.25.0
+google-cloud-texttospeech
+google-cloud-speech
+google-cloud-dlp
+google-cloud-dialogflow-cx
+google-cloud-dialogflow
+google-cloud-iam
+vertexai
+pydub
+pandas
+jsonschema
+strenum
+requests
 cxidk
