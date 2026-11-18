@@ -14,16 +14,20 @@
 
 """A class for all Insigths things related"""
 
+from __future__ import annotations
+
 import json
 import os
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # pyright: reportMissingModuleSource=false
 import jsonschema
-from google.cloud.speech_v1 import types as types_v1
-from google.cloud.speech_v2 import types as types_v2
+
+if TYPE_CHECKING:
+    from google.cloud.speech_v1 import types as types_v1
+    from google.cloud.speech_v2 import types as types_v2
 
 
 class Role(Enum):

@@ -14,9 +14,12 @@
 
 """Tests for LLM/agent discovery manifests, `llms.txt` sync, and `.venv` introspection."""
 
+import importlib
+import importlib.abc
 import importlib.util
 import json
 from pathlib import Path
+import sys
 import tomllib
 from typing import Any
 
@@ -206,3 +209,93 @@ async def test_mcp_exposes_llms_txt_and_skill_resources(
             assert skill_uri in uris
             skill_res = await client.read_resource(skill_uri)
             assert f"name: {skill_name}" in str(skill_res.contents[0])
+
+
+def test_mcp_adk_and_gen_llms_import_without_optional_extras(
+    demo_cx: CxContext,
+) -> None:
+    """Ensures `cxidk[mcp]`, `cxidk[adk]`, `format`, and `gen_llms_txt.py` omit extra deps."""
+    blocked_prefixes = (
+        "google.cloud.dlp",
+        "google.cloud.dlp_v2",
+        "google.cloud.speech",
+        "google.cloud.speech_v1",
+        "google.cloud.speech_v2",
+        "google.cloud.texttospeech",
+        "pydub",
+        "google.cloud.dialogflow",
+        "google.cloud.dialogflowcx",
+        "gspread",
+        "pandas",
+        "google.cloud.iam",
+        "google.cloud.resourcemanager_v3",
+        "google.cloud.bigquery",
+        "sklearn",
+        "tabulate",
+    )
+
+    class _OptionalExtraBlocker(importlib.abc.MetaPathFinder):
+        """Simulates an environment with only core + mcp/adk dependencies installed."""
+
+        def find_spec(
+            self, fullname: str, path: Any, target: Any = None
+        ) -> Any:
+            """Raises `ModuleNotFoundError` for blocked optional-extra packages."""
+            del path, target
+            if any(
+                fullname == prefix or fullname.startswith(f"{prefix}.")
+                for prefix in blocked_prefixes
+            ):
+                raise ModuleNotFoundError(f"Blocked optional extra: {fullname}")
+
+    blocker = _OptionalExtraBlocker()
+    saved_cxidk = {
+        name: mod
+        for name, mod in sys.modules.items()
+        if name == "cxidk"
+        or name.startswith("cxidk.")
+        or any(
+            name == prefix or name.startswith(f"{prefix}.")
+            for prefix in blocked_prefixes
+        )
+    }
+    sys.meta_path.insert(0, blocker)
+    try:
+        for name in list(saved_cxidk):
+            sys.modules.pop(name, None)
+
+        for mod_name in (
+            "cxidk",
+            "cxidk.workflow.format",
+            "cxidk.workflow.ops",
+            "cxidk.workflow.role_recognizer",
+            "cxidk.ai.tools",
+            "cxidk.ai.mcp.server",
+            "cxidk.ai.mcp.resources",
+            "cxidk.ai.adk.toolset",
+        ):
+            importlib.import_module(mod_name)
+
+        gen_mod = _load_gen_llms_module()
+        assert gen_mod.main(["--check"]) == 0
+
+        reloaded_errors = importlib.import_module("cxidk.core.errors")
+        conv_tools = importlib.import_module("cxidk.ai.tools.conversations")
+        with pytest.raises(
+            reloaded_errors.InvalidArgumentError, match="optional `dlp` extra"
+        ):
+            conv_tools._redact_texts_with_dlp(  # pylint: disable=protected-access
+                ["Alice email alice@example.com"],
+                demo_cx,
+                deidentify_template="projects/demo-proj-01/deidentifyTemplates/t1",
+                inspect_template=None,
+            )
+    finally:
+        sys.meta_path.remove(blocker)
+        for name in [
+            k
+            for k in sys.modules
+            if k == "cxidk" or k.startswith("cxidk.")
+        ]:
+            sys.modules.pop(name, None)
+        sys.modules.update(saved_cxidk)

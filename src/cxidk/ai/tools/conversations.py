@@ -25,7 +25,6 @@ from cxidk.ai.tools import models
 from cxidk.ai.tools import registry
 from cxidk.ai.tools import validation
 from cxidk.wrapper import insights
-from cxidk.wrapper import sensitive_data_protection
 
 TranscriptMode = validation.TranscriptMode
 
@@ -72,6 +71,28 @@ def mask_common_pii(text: str) -> str:
     return _PHONE_RE.sub("[PHONE_NUMBER]", masked)
 
 
+def _create_dlp_client(target: context.CxContext) -> Any:
+    """Lazily instantiates `sensitive_data_protection.DLP` when `[dlp]` is installed."""
+    try:
+        from cxidk.wrapper import (  # pylint: disable=import-outside-toplevel
+            sensitive_data_protection,
+        )
+    except ImportError as exc:
+        raise errors.InvalidArgumentError(
+            "Cloud DLP transcript redaction requires the optional `dlp` extra.",
+            hint=(
+                'Install with `pip install "cxidk[dlp]"` or unset '
+                "CXIDK_DLP_DEIDENTIFY_TEMPLATE."
+            ),
+        ) from exc
+    return sensitive_data_protection.DLP(
+        project_id=target.project_id,
+        location=target.location,
+        auth=target.auth,
+        config=target.config,
+    )
+
+
 def _redact_texts_with_dlp(
     texts: List[str],
     target: context.CxContext,
@@ -87,12 +108,7 @@ def _redact_texts_with_dlp(
     )
     output = list(texts)
     if eff_deidentify and texts:
-        dlp_client = sensitive_data_protection.DLP(
-            project_id=target.project_id,
-            location=target.location,
-            auth=target.auth,
-            config=target.config,
-        )
+        dlp_client = _create_dlp_client(target)
         table_payload = {
             "transcript_header": [
                 {"name": f"t_{idx}"} for idx in range(len(texts))
