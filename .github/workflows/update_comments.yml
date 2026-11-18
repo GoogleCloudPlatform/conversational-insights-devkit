@@ -1,0 +1,52 @@
+# This GitHub Actions workflow automatically adds comments to Python files
+# using the Gemini API and commits the changes back to the repository.
+
+name: 'Docs - Update Code Comments'
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow from the Actions tab
+
+permissions:
+  contents: write      # Required to push commits back to the repository
+  pull-requests: write # Required if you want to create a pull request instead
+
+jobs:
+  update-comments:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 'Install dependencies'
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install "google-genai>=2.30.0,<3.0.0"
+
+      - name: 'Run comment update script'
+        run: python .github/scripts/update_comments.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: 'Configure Git'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 'Commit and push changes'
+        run: |
+          # Check if there are any changes
+          if ! git diff --quiet; then
+            git add .
+            git commit -m "chore(code): ✍️ Add/update comments with Gemini"
+            git push
+            echo "Code comment changes have been committed and pushed."
+          else
+            echo "No changes to commit."
+          fi

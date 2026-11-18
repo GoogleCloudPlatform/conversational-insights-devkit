@@ -1,0 +1,70 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.GoogleCloudPlatform/cxidk",
+  "title": "Conversational Insights DevKit (cxidk)",
+  "description": "Google Cloud Conversational Insights (CCAI) MCP server for analytics, conversion, and config ops.",
+  "version": "2.0.0",
+  "websiteUrl": "https://github.com/GoogleCloudPlatform/conversational-insights-devkit",
+  "repository": {
+    "url": "https://github.com/GoogleCloudPlatform/conversational-insights-devkit",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "cxidk",
+      "version": "2.0.0",
+      "runtimeHint": "uvx",
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "--with",
+          "value": "cxidk[mcp]"
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "named",
+          "name": "--transport",
+          "value": "stdio"
+        }
+      ],
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "CXIDK_PROJECT_ID",
+          "description": "Default Google Cloud project ID for CCAI Insights operations.",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "CXIDK_LOCATION",
+          "description": "Default CCAI Insights regional location (e.g. us-central1, europe-west1, global).",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "CXIDK_ALLOWED_PROJECTS",
+          "description": "Comma-separated allowlist of GCP project IDs permitted for tool calls.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "CXIDK_ALLOW_WRITES",
+          "description": "Set to 'true' to expose guarded write tools (config promotion, ingestion, bulk analyze).",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "CXIDK_TRANSCRIPT_MODE",
+          "description": "Transcript privacy mode: 'full', 'redacted', or 'omit'.",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

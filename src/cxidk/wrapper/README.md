@@ -1,17 +1,19 @@
-# Wrapper Module
+# Wrapper Layer (`cxidk.wrapper`)
 
-The `wrapper` module provides simplified interfaces for various Google Cloud services, making them easier to use within the context of Conversational Insights.
+The `wrapper` layer provides task-oriented Python clients over Google Cloud SDKs with explicit `Auth` and regional `Config` support.
 
-## Modules
+## Submodules
 
-- **`agents.py`**: Wrappers for Dialogflow CX Agents and Agent Studio.
-- **`iam.py`**: Helper functions for IAM management.
-- **`insights.py`**: Core Conversational Insights functionality (ingestion, analysis).
-- **`sheets.py`**: Integration with Google Sheets.
-- **`speech.py`**: Wrappers for Speech-to-Text (STT) V1 and V2.
-- **`storage.py`**: Google Cloud Storage (GCS) operations.
-- **`vertex.py`**: Vertex AI integration.
-
-## Usage
-
-These wrappers are intended to abstract away some of the complexity of the raw Google Cloud client libraries, providing a more "pythonic" and task-oriented API.
+- **`insights/`**: Contact Center AI (CCAI) Insights subpackage:
+  - `conversations.py`: Read clients (`Conversations`, `Analyses`, `Stats`).
+  - `operations.py`: Write/LRO clients (`Settings`, `Ingestion`, `Analysis`, `Export`, `LongRunningOperation`).
+  - `config_resources.py`: Resource collections (`ConfigCollection`, `PhraseMatchers`, `IssueModels`, `QaScorecards`, `ScorecardRevisions`, `RevisionQuestions`, `QaQuestionTags`, `AnalysisRules`, `AutoLabelingRules`, `AssessmentRules`) plus the proto-based `LegacyScorecards` retained for `workflow.config_copier`.
+  - `scorecards.py`: `Scorecards` facade composing the scorecard collections into typed, revision-aware views (`list()`, `get()`, `list_revisions()`) with `ScorecardSummary`, `ScorecardDefinition`, `RevisionInfo`, `QuestionInfo`, and `AnswerChoice` dataclasses.
+  - `views.py`: `AuthorizedViews` and `CorrelationConfig`.
+- **`sensitive_data_protection.py`**: Cloud DLP text inspection and de-identification.
+- **`speech.py`**: Cloud Speech-to-Text V1 and V2 wrappers.
+- **`storage.py`**: Google Cloud Storage (`Gcs`) operations.
+- **`vertex.py`**: Gemini client on Vertex AI (`google-genai`).
+- **`agents.py`**: Dialogflow CX and Customer Engagement Suite (CES) Agent Studio clients.
+- **`iam.py`**: Project IAM policy helpers.
+- **`sheets.py`**: Google Sheets integration.

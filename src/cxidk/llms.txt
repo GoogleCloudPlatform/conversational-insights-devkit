@@ -1,0 +1,67 @@
+# Conversational Insights DevKit (cxidk)
+
+> AI-native Python SDK, Model Context Protocol (MCP) server (`cxidk-mcp`), and Google ADK toolset for Google Cloud Conversational Insights (formerly Contact Center AI / CCAI Insights, part of Customer Engagement Suite).
+
+## Core Documentation & Context
+
+- [README.md](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/README.md): Installation, intent map vs. `google-cloud-contact-center-insights`, Python SDK, MCP, and ADK quickstarts.
+- [llms-full.txt](https://raw.githubusercontent.com/GoogleCloudPlatform/conversational-insights-devkit/main/llms-full.txt): Single-file full-context bundle inlining quickstarts, SDK/tool schemas, filter syntax, and all `SKILL.md` playbooks.
+- [AGENTS.md](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/AGENTS.md): Repository architecture and non-negotiable safety invariants.
+- [GEMINI_EXTENSION.md](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/GEMINI_EXTENSION.md): Gemini CLI Extension operational runtime context.
+- [deploy/mcp-cloud-run/README.md](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/deploy/mcp-cloud-run/README.md): Remote Cloud Run Streamable HTTP MCP deployment.
+- [examples/terraform/README.md](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/examples/terraform/README.md): Reference Terraform modules for Cloud Run MCP and event-driven ingestion.
+
+## Python SDK Modules (`cxidk`)
+
+- `cxidk.CxContext`: Validated regional execution context (`project_id`, `location`, `auth`, `config`).
+- `cxidk.get_llms_txt()`: Returns the wheel-bundled `llms.txt` index offline.
+- `cxidk.wrapper.insights`: CCAI Insights clients — read (`Conversations`, `Analyses`, `Stats`), write/LRO (`Settings`, `Ingestion`, `Analysis`, `Export`, `LongRunningOperation`), typed QA scorecard views (`Scorecards`: `list()`, `get()`, `list_revisions()`), collections (`PhraseMatchers`, `IssueModels`, `QaScorecards`, `QaQuestionTags`, `AnalysisRules`, `AutoLabelingRules`, `AssessmentRules`), and views (`AuthorizedViews`, `CorrelationConfig`).
+- `cxidk.wrapper` adjacent GCP clients: `storage.Gcs`, `vertex.Generator` (`google-genai`), `sensitive_data_protection.Dlp`, `speech` (`V1`/`V2`), `agents` (Dialogflow CX / CES), `iam`, and `sheets`.
+- `cxidk.workflow.ops.ConfigOps`: Atomic GCS `export()`, dry-run `plan()`, and create-only `import_()` across GCP projects and regions (`Asset`, `ExportOptions`, `ImportOptions`).
+- `cxidk.workflow.format.Insights`: Deterministic vendor transcript converters (`from_aws()`, `from_genesys_cloud()`, `from_dlp_recognize_response()`).
+- `cxidk.workflow.role_recognizer.RoleRecognizer`: Gemini speaker role classification (`AGENT` vs. `CUSTOMER`) on Speech-to-Text transcripts.
+- `cxidk.workflow.views_manager`: High-level authorized view set management.
+- `cxidk.workflow.insight_refinements`: Quality AI (QAI) scorecard evaluation (`evaluation.EvaluationReporter`), prompt optimization (`optimization`), and topic refinement (`topic_refinement`).
+- `cxidk.ai.tools`: Transport-agnostic `@cx_tool` registry (`REGISTRY`) and Pydantic output models.
+- `cxidk.ai.mcp.build_server`: `MCPServer` factory for `stdio` and Cloud Run Streamable HTTP (`build_http_app`).
+- `cxidk.ai.adk`: `insights_tools()` `FunctionTool` builder with `require_confirmation`, `remote_insights_mcp_toolset()`, and reference agents (`build_insights_analyst_agent`, `build_config_promoter_agent`, `build_qa_tuner_agent`).
+
+## Registered AI Tools (`cxidk.ai.tools` / `cxidk-mcp`)
+
+- `config_apply_import` (`toolset=writes`, `safety=write`, confirmation=required): Executes a create-only configuration import from `bundle_uri` into the destination project/location after verifying a valid, unexpired `plan_token` from `config_plan_import`. Imported rules are created INACTIVE by default (`activate_imported=False`) and topic models are never auto-deployed.
+- `config_export_bundle` (`toolset=writes`, `safety=write`, confirmation=required): Exports active CCAI Insights configuration assets from the source project/location to an atomic JSON bundle in Google Cloud Storage (`gs://bucket/path.json`). Requires write enablement and confirmation.
+- `config_plan_import` (`toolset=writes`, `safety=read`, confirmation=none): Performs a read-only dry-run preview of importing a GCS configuration bundle into the destination project/location, reporting resource counts, display-name clashes, and billing impact notes, and returns a signed short-lived `plan_token` required by `config_apply_import`.
+- `insights_bulk_analyze` (`toolset=writes`, `safety=write`, confirmation=required): Launches a billable bulk analysis job across conversations matching `analysis_filter` (required non-empty filter). Always run with `dry_run=True` or call `insights_calculate_stats` first to verify matching conversation volume and estimated billing impact.
+- `insights_calculate_stats` (`toolset=core`, `safety=read`, confirmation=none): Computes aggregate statistics across matching conversations—including conversation count, average duration, average turn count, and top issue distribution. Always call this before paging through hundreds of conversations or launching `insights_bulk_analyze`.
+- `insights_get_conversation` (`toolset=core`, `safety=read`, confirmation=none): Fetches a single CCAI Insights conversation by bare `conversation_id`, including analysis summary, quality metadata, and turn-by-turn transcript subject to `transcript_mode` ('full', 'redacted', or 'omit') and `max_turns`.
+- `insights_get_operation` (`toolset=core`, `safety=read`, confirmation=none): Polls the current status of a CCAI Insights long-running operation (`projects/{project}/locations/{location}/operations/{id}`) without blocking. Returns `done`, `metadata`, and either `response` or `error`.
+- `insights_get_scorecard` (`toolset=core`, `safety=read`, confirmation=none): Fetches one QA scorecard and the full question set of a revision: question body, answer instructions, tags, answer choices with scores, derived `max_score` and `weight_percent`, question type, and order. Omit `revision_id` (or pass 'latest') for the current revision; pass a bare revision ID from `insights_list_scorecard_revisions` to inspect an older one.
+- `insights_get_settings` (`toolset=core`, `safety=read`, confirmation=none): Retrieves project/location CCAI Insights settings including conversation TTL, default language, Pub/Sub notifications, Speech recognizer, DLP redaction templates, and automatic analysis percentages.
+- `insights_ingest_conversation` (`toolset=writes`, `safety=write`, confirmation=required): Uploads a single conversation from Google Cloud Storage (`transcript_uri` or `audio_uri`) into CCAI Insights and returns the resulting long-running operation handle. Pass `dry_run=True` to validate inputs without writing.
+- `insights_list_analyses` (`toolset=core`, `safety=read`, confirmation=none): Lists completed CCAI Insights analyses for a single `conversation_id`, including QA scorecard answers, detected issues, entities, sentiment, and summarization annotations.
+- `insights_list_conversations` (`toolset=core`, `safety=read`, confirmation=none): Lists a single page of CCAI Insights conversations using metadata-only BASIC view by default to conserve context window tokens and minimize PII exposure. Use `filter` with Insights filter expressions (for example `medium="CHAT"` or `latest_analysis:*`) and pass `page_token` to paginate.
+- `insights_list_resources` (`toolset=core`, `safety=read`, confirmation=none): Lists CCAI Insights configuration resources of a given `resource_type`: `phrase_matchers` (smart highlighters), `issue_models` (topic models), `analysis_rules`, `auto_labeling_rules`, `assessment_rules`, `qa_question_tags`, or `authorized_view_sets`.
+- `insights_list_scorecard_revisions` (`toolset=core`, `safety=read`, confirmation=none): Lists all revisions of a QA scorecard, newest first, with revision ID, full resource name, state (EDITABLE, TRAINING, READY, ...), aliases, and which revision is current. Pass a returned `revision_id` to `insights_get_scorecard` to inspect that revision's questions.
+- `insights_list_scorecards` (`toolset=core`, `safety=read`, confirmation=none): Lists QA scorecards in the target CCAI Insights project and location with display name, default flag, revision count, latest revision ID and state, and the number of questions in the latest revision. Set `include_question_counts=False` to skip per-scorecard question lookups on large inventories. Use `insights_get_scorecard` to read the questions.
+- `insights_query_metrics` (`toolset=core`, `safety=read`, confirmation=none): Queries CCAI Insights time-series metrics at `NONE`, `HOURLY`, `DAILY`, or `MONTHLY` granularity, optionally sliced by dimensions (`ISSUE`, `AGENT`, `AGENT_TEAM`, `QA_QUESTION_ID`, `QA_QUESTION_ANSWER_VALUE`, `CONVERSATION_PROFILE_ID`).
+- `transcript_convert` (`toolset=transcripts`, `safety=read`, confirmation=none): Deterministically converts an AWS Transcribe (`aws`) or Genesys Cloud (`genesys_cloud`) transcript JSON object into CCAI Insights `JsonConversationInput` (`{'entries': [...]}`). Runs locally with no external network calls.
+- `transcript_recognize_roles` (`toolset=transcripts`, `safety=read`, confirmation=none): Classifies each utterance in a Speech-to-Text v2 response dictionary as `AGENT` (channelTag=2) or `CUSTOMER` (channelTag=1) using Gemini on Vertex AI, returning both predictions and an updated transcript.
+- `transcript_validate` (`toolset=transcripts`, `safety=read`, confirmation=none): Validates a transcript JSON object against the bundled `aws`, `genesys_cloud`, or `insights` (`JsonConversationInput`) JSON Schema and returns all detected validation errors.
+
+## MCP Resources & Prompts
+
+- `cxidk://schemas/insights-conversation`: JSON Schema for `JsonConversationInput`.
+- `cxidk://reference/filter-syntax`: CCAI Insights filter expression cheat sheet.
+- `cxidk://reference/annotators`: Annotator selectors and supported GCP regions.
+- `cxidk://reference/llms-txt`: Bundled `llms.txt` Python SDK and AI tool index.
+- `cxidk://skills/{skill_name}`: Bundled operational `SKILL.md` playbooks exposed via MCP `resources/list`.
+- Prompt `investigate_conversations`: Aggregate-first conversation investigation workflow.
+- Prompt `promote_configuration`: Export -> dry-run plan -> confirmed import workflow.
+- Prompt `onboard_vendor_transcripts`: Validate -> convert -> dry-run ingest workflow.
+
+## Bundled Agent Skills (`cxidk.ai.skills`)
+
+- [cx-insights-analyst](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/src/cxidk/ai/skills/cx-insights-analyst/SKILL.md)
+- [cx-insights-config-promotion](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/src/cxidk/ai/skills/cx-insights-config-promotion/SKILL.md)
+- [cx-insights-ingestion](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/src/cxidk/ai/skills/cx-insights-ingestion/SKILL.md)
+- [cx-insights-qa-tuning](https://github.com/GoogleCloudPlatform/conversational-insights-devkit/blob/main/src/cxidk/ai/skills/cx-insights-qa-tuning/SKILL.md)

@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Meta-Prompting Optimization Logic for QAI Optimization Framework.
 
@@ -122,6 +135,7 @@ class ScorecardOptimizer:
         project_id: str,
         location_id: str,
         model_name: str = "gemini-3.1-flash-lite-preview",
+        auth: Any = None,
     ):
         """
         Initializes the optimizer with Vertex AI client.
@@ -130,10 +144,16 @@ class ScorecardOptimizer:
             project_id (str): GCP Project ID.
             location_id (str): GCP Region.
             model_name (str): Gemini model to use (default: gemini-3.1-flash-lite-preview).
+            auth: Optional `cxidk.core.base.Auth` instance for explicit credentials.
         """
-        self.client = genai.Client(
-            vertexai=True, project=project_id, location=location_id
-        )
+        client_kwargs: Dict[str, Any] = {
+            "vertexai": True,
+            "project": project_id,
+            "location": location_id,
+        }
+        if auth is not None:
+            client_kwargs["credentials"] = auth.creds
+        self.client = genai.Client(**client_kwargs)
         self.model_name = model_name
         self.verification_model = model_name  # Use same model to match location config
 
@@ -144,7 +164,7 @@ class ScorecardOptimizer:
         try:
             cases = [DisagreementCase(**ex) for ex in raw_examples]
         except ValidationError as e:
-            logger.warning(f"Validation Error in Evidence: {e}")
+            logger.warning("Validation Error in Evidence: %s", e)
             return "<error>Invalid Evidence Data</error>"
 
         evidence_str = "<disagreement_evidence>\n"
@@ -176,13 +196,18 @@ class ScorecardOptimizer:
             question (str): The original question text.
             instructions (str): The original instructions.
             answers (List[str]): List of answer choices.
-            disagreement_cases (List[Dict]): A list of scenarios where the AI and Human disagreed.
-                                           These are used as "negative constraints" to force the model
-                                           to fix its logic.
-                                           Format: [{"turn": "...", "human": "Yes", "ai": "No", "reason": "..."}]
-            reference_examples (List[Dict]): Optional list of "Gold Standard" examples where the label is known to be correct.
-                                           These are used as "positive patterns" to teach the model the desired behavior.
-                                           Format: [{"turn": "...", "label": "Yes", "reason": "Matches criteria X"}]
+            disagreement_cases (List[Dict]): A list of scenarios where the AI and Human
+                                           disagreed. These are used as "negative
+                                           constraints" to force the model to fix its
+                                           logic.
+                                           Format: [{"turn": "...", "human": "Yes",
+                                           "ai": "No", "reason": "..."}]
+            reference_examples (List[Dict]): Optional list of "Gold Standard" examples
+                                           where the label is known to be correct.
+                                           These are used as "positive patterns" to teach
+                                           the model the desired behavior.
+                                           Format: [{"turn": "...", "label": "Yes",
+                                           "reason": "Matches criteria X"}]
 
         Returns:
             OptimizedScorecard: The refined rule.
@@ -227,7 +252,18 @@ class ScorecardOptimizer:
             ),
         )
 
-        return response.parsed
+        parsed = response.parsed
+        if parsed is None:
+            raise ValueError(
+                "Optimization failed: the model returned no parsable JSON payload "
+                f"for the OptimizedScorecard schema (model={self.model_name})."
+            )
+        if isinstance(parsed, OptimizedScorecard):
+            return parsed
+
+        # The SDK returns a plain dict when it cannot bind the payload to the
+        # response schema; validate it so callers always get a typed result.
+        return OptimizedScorecard.model_validate(parsed)
 
     @handle_api_quota()
     def verify_optimization(
@@ -261,9 +297,18 @@ class ScorecardOptimizer:
                     ),
                 )
                 v_result = response.parsed
+                if not isinstance(v_result, VerificationResult):
+                    # Recorded as a failure for this case by the handler below.
+                    raise TypeError(
+                        "Verification response could not be parsed into a "
+                        f"VerificationResult (got {type(v_result).__name__})."
+                    )
 
-                # Check for agreement with HUMAN (Ground Truth)
-                if v_result.score.strip().lower() != case.human.strip().lower():
+                # Check for agreement with HUMAN (Ground Truth).
+                # `case.human` is a plain `str` at runtime; pylint mis-infers the pydantic
+                # Field() default as a FieldInfo instance, hence the narrow disable.
+                human_score = case.human.strip().lower()  # pylint: disable=no-member
+                if v_result.score.strip().lower() != human_score:
                     failures.append(
                         {
                             "case_id": i + 1,
@@ -272,8 +317,10 @@ class ScorecardOptimizer:
                             "model_reasoning": v_result.reason,
                         }
                     )
-            except Exception as e:
-                logger.error(f"Verification failed for case {i}: {e}")
+            # A single malformed case (validation, API or parsing error) must be recorded
+            # as a failure without aborting verification of the remaining cases.
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.error("Verification failed for case %s: %s", i, e)
                 failures.append({"case_id": i, "error": str(e)})
 
         return failures

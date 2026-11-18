@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Topic Refinement Logic using Gemini.
 
@@ -90,10 +103,11 @@ class TopicRefiner:
             bucket = self.storage_client.bucket(bucket_name)
             blob = bucket.blob(blob_name)
             content = blob.download_as_text()
-            logger.info(f"Successfully loaded prompt template from {uri}")
+            logger.info("Successfully loaded prompt template from %s", uri)
             return content
-        except Exception as e:
-            logger.error(f"Failed to load prompt from {uri}: {e}. Falling back.")
+        # Any failure here (GCS/auth/parsing) must degrade to the default template.
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to load prompt from %s: %s. Falling back.", uri, e)
             return DEFAULT_USER_PROMPT_TEMPLATE
 
     def _load_approved_taxonomy(self) -> Optional[List[str]]:
@@ -106,30 +120,32 @@ class TopicRefiner:
 
         file_path = self.config.topic_refinement.approved_taxonomy_file
         if not os.path.exists(file_path):
-            logger.warning(f"Taxonomy file {file_path} not found. Skipping strict mode.")
+            logger.warning("Taxonomy file %s not found. Skipping strict mode.", file_path)
             return None
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            
+
             # Support both a simple list and the structured output from our script
             if isinstance(data, dict) and "master_categories" in data:
                 categories = data["master_categories"]
             elif isinstance(data, list):
                 categories = data
             else:
-                logger.error(f"Unsupported taxonomy format in {file_path}")
+                logger.error("Unsupported taxonomy format in %s", file_path)
                 return None
-            
+
             # Ensure 'Other' is always an option
             if "Other" not in categories:
                 categories.append("Other")
-            
-            logger.info(f"Strict Mode Enabled. Loaded {len(categories)} categories.")
+
+            logger.info("Strict Mode Enabled. Loaded %d categories.", len(categories))
             return categories
-        except Exception as e:
-            logger.error(f"Failed to load taxonomy from {file_path}: {e}")
+        # Malformed taxonomy files can raise I/O, JSON or type errors; strict mode is
+        # optional, so any failure must simply disable it instead of aborting the run.
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to load taxonomy from %s: %s", file_path, e)
             return None
 
     def _get_response_schema(self) -> Any:
@@ -197,29 +213,45 @@ class TopicRefiner:
             result.model_version = self.model_name
             result.processed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
+            # Token counts are telemetry only: the SDK omits usage metadata on
+            # some responses, so record zero instead of failing a valid result.
+            usage = response.usage_metadata
+            if usage is None:
+                logger.warning(
+                    "No usage metadata returned for %s; recording zero token counts.",
+                    conversation_id,
+                )
+            input_tokens = (usage.prompt_token_count or 0) if usage else 0
+            output_tokens = (usage.candidates_token_count or 0) if usage else 0
+
             audit = TopicAuditLog(
                 run_id=self.run_id,
                 conversation_id=conversation_id,
                 status="success",
+                error_message=None,
                 latency_ms=latency,
-                input_tokens=response.usage_metadata.prompt_token_count,
-                output_tokens=response.usage_metadata.candidates_token_count,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
             )
 
             return result, audit
 
-        except Exception as e:
+        # The refiner must never propagate a failure for a single conversation: it
+        # retries once and then degrades to the 'Other' category plus an error audit.
+        except Exception as e:  # pylint: disable=broad-exception-caught
             if not is_retry:
-                logger.warning(f"Refinement failed for {conversation_id}: {e}. Retrying...")
+                logger.warning("Refinement failed for %s: %s. Retrying...", conversation_id, e)
                 return self.refine_topic(
-                    conversation_id, l1_issue_id, l1_topic_name, l1_topic_description, 
+                    conversation_id, l1_issue_id, l1_topic_name, l1_topic_description,
                     formatted_transcript, is_retry=True
                 )
-            
+
             # Fallback to 'Other' on second failure
             latency = (time.time() - start_time) * 1000
-            logger.error(f"Refinement failed twice for {conversation_id}. Falling back to 'Other'.")
-            
+            logger.error(
+                "Refinement failed twice for %s. Falling back to 'Other'.", conversation_id
+            )
+
             result = L2TaxonomyResult(
                 conversation_id=conversation_id,
                 l1_issue_id=l1_issue_id,
@@ -228,7 +260,7 @@ class TopicRefiner:
                 model_version=self.model_name,
                 processed_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             )
-            
+
             audit = TopicAuditLog(
                 run_id=self.run_id,
                 conversation_id=conversation_id,

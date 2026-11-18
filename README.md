@@ -1,237 +1,189 @@
-<details open="open">
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-conversational-insights-devkit">About the Conversational Insights DevKit</a>
-      <ul>
-        <li><a href="#key-features">Key Features</a></li>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#environment-setup">Environment Setup</a></li>
-        <li><a href="#authentication">Authentication</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#library-architecture">Library Architecture</a>
-      <ul>
-        <li><a href="#core">Core</a></li>
-        <li><a href="#wrapper">Wrapper</a></li>
-        <li><a href="#workflows">Workflows</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage-examples">Usage Examples</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-  </ol>
-</details>
+<!-- mcp-name: io.github.GoogleCloudPlatform/cxidk -->
 
-# Conversational Insights DevKit
+# Conversational Insights DevKit (`cxidk` 2.0)
 
-The Conversational Insights DevKit is a high-level Python library designed to simplify and enhance your interaction with Google's [Conversational Insights API](https://cloud.google.com/python/docs/reference/contactcenterinsights/latest/google.cloud.contact_center_insights_v1.types.AnnotatorSelector). It extends the official Python Client, offering a more user-friendly and Pythonic interface for developers and maintainers looking to leverage conversational AI at scale.
+The **Conversational Insights DevKit (`cxidk`)** is an AI-native Python library,
+Model Context Protocol (**MCP**) server, and **Google Agent Development Kit (ADK)**
+integration for [Google Cloud Conversational Insights](https://cloud.google.com/contact-center/insights/docs)
+(formerly **Contact Center AI / CCAI Insights**, part of **Customer Engagement Suite**).
 
 ## Key Features
-The DevKit empowers you to perform a wide range of actions efficiently, including:
-*   Ingest single or bulk conversations with associated metadata.
-*   Transcribe mono audio files using Speech-to-Text V1 with diarization.
-*   Perform speaker role recognition in transcripts using Gemini.
-*   Create and manage Speech-to-Text V2 recognizers.
-*   Configure BigQuery exports for conversational insights data.
-*   Modify global Conversational Insights settings.
-*   Transform transcript data formats from various vendors (e.g., Genesys Cloud, AWS) to Insights-compatible formats.
-*   ...and much more, streamlining your conversational AI workflows!
 
-## Built With
-*   Python 3.8+
+- **Read & Analytics APIs**: Token-budgeted conversation listing (`BASIC` view by
+  default), transcript retrieval with Cloud DLP / regex PII redaction, QA scorecard
+  analysis inspection, `calculate_stats`, and `query_metrics` time-series slicing.
+- **Guarded Configuration Promotion (`ConfigOps`)**: Atomic GCS bundle export,
+  dry-run `plan()` with cryptographic HS256 `plan_token` binding, and create-only
+  `import_()` across projects and regions.
+- **Vendor Transcript Onboarding**: Deterministic JSON Schema validation and
+  conversion for **AWS Transcribe** and **Genesys Cloud**, plus **Gemini** speaker
+  role classification (`AGENT` vs. `CUSTOMER`) via `google-genai`.
+- **MCP Server (`cxidk-mcp`)**: Ready for Gemini CLI, Claude Code, Cursor, VS Code
+  (`stdio`), and remote multi-user **Cloud Run** deployments (Streamable HTTP with
+  IAP/OIDC auth, MCP elicitation confirmation, OpenTelemetry, and audit logging).
+- **Google ADK Integration (`cxidk.ai.adk`)**: First-class `FunctionTool` (`require_confirmation`
+  wired automatically), remote `McpToolset`, bundled `SKILL.md` Agent Skills, and
+  reference agents (`insights_analyst`, `config_promoter`, `qa_tuner`).
 
-# Getting Started
+## When to Use `cxidk` vs. `google-cloud-contact-center-insights`
 
-This section guides you through setting up your development environment and authenticating with Google Cloud Platform.
+`google-cloud-contact-center-insights` provides low-level auto-generated gRPC/Protobuf
+bindings. Use **`cxidk`** on top when building workflows, pipelines, or AI agents:
 
-## Environment Setup
-Before you begin, ensure your Google Cloud Platform credentials are configured and install the necessary dependencies.
+| Developer / Agent Task | `cxidk` Python Entrypoint | MCP / ADK Tool |
+| --- | --- | --- |
+| Aggregate call volume, sentiment, and QA metrics | `cxidk.wrapper.insights.Stats` | `insights_calculate_stats`, `insights_query_metrics` |
+| Read conversations with PII masking & turn budgets | `cxidk.wrapper.insights.Conversations` | `insights_list_conversations`, `insights_get_conversation` |
+| Export, dry-run plan, and promote Insights configs | `cxidk.workflow.ops.ConfigOps` | `config_export_bundle`, `config_plan_import`, `config_apply_import` |
+| Convert AWS Transcribe or Genesys Cloud JSON | `cxidk.workflow.format.Insights` | `transcript_validate`, `transcript_convert` |
+| Classify `AGENT` vs. `CUSTOMER` speaker roles | `cxidk.workflow.role_recognizer.RoleRecognizer` | `transcript_recognize_roles` |
+| Evaluate & tune Quality AI (QAI) scorecards | `cxidk.wrapper.insights.Scorecards`, `cxidk.workflow.insight_refinements` | `insights_list_scorecards`, `insights_get_scorecard`, `insights_list_scorecard_revisions`, `insights_list_analyses` |
+| Build confirmation-gated Google ADK agents | `cxidk.ai.adk.insights_tools`, `cxidk.ai.skills` | All 19 `@cx_tool` functions |
 
-1.  **GCP CLI Setup (if not already done):**
-    ```sh
-    gcloud auth login
-    gcloud auth application-default login # Authenticates the gcloud CLI to access Google Cloud APIs
-    gcloud config set project <YOUR_GCP_PROJECT_ID>
-    ```
-    Replace `<YOUR_GCP_PROJECT_ID>` with your actual Google Cloud Project ID.
+## Requirements & Installation
 
-2.  **Install Dependencies:**
-    ```sh
-    python3 -m venv venv
-    source ./venv/bin/activate
-    python3 -m pip install -r requirements.txt
-    ```
+Requires **Python 3.11+**.
 
-## Authentication
-The DevKit supports various authentication methods, adapting to your execution environment.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 
-### Google Colab
-For Google Colab notebooks, use the following interactive authentication method:
-```python
-project_id = '<YOUR_GCP_PROJECT_ID>' # Replace with your GCP Project ID
+# Core SDK
+pip install cxidk
 
-# This will launch an interactive prompt to authenticate with GCP in your browser.
-!gcloud auth application-default login --no-launch-browser
+# With MCP server + Google ADK + Speech + DLP extras
+pip install "cxidk[mcp,adk,speech,dlp]"
 
-# This sets your active project for subsequent API calls, ensuring proper billing and quota usage.
-!gcloud auth application-default set-quota-project $project_id
+# Local editable install for contributors
+pip install -e ".[all,dev]"
 ```
 
-### Cloud Functions / Cloud Run
-When deploying on serverless platforms like [Cloud Functions](https://cloud.google.com/functions) or [Cloud Run](https://cloud.google.com/run), the DevKit automatically picks up default environment credentials from the associated service account.
-
-1.  Add this library to your `requirements.txt` file in your Cloud Function or Cloud Run service.
-2.  Ensure the service account associated with your Cloud Function/Run service has the appropriate Dialogflow and Conversational Insights IAM roles (e.g., `Contact Center AI Insights Editor`).
-
-### Local Python Environment
-For local development, the DevKit can leverage your `gcloud CLI` credentials.
-
-1.  Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
-2.  Initialize gcloud: `gcloud init`.
-3.  Log in to your GCP account: `gcloud auth login`.
-4.  Verify your active principal account: `gcloud auth list`.
-
-This process authenticates your GCP principal account with the `gcloud CLI`, allowing the DevKit to automatically pick up these credentials for API calls.
-
-# Library Architecture
-The Conversational Insights DevKit is structured into three main components, designed for flexibility and ease of use:
-
-## Core
-Located in `src/cxidk/core`, this folder contains the fundamental building blocks of the DevKit, directly mapping to core resource types of the Conversational Insights API.
-*   Offers high-level classes and methods for direct API interaction.
-*   Serves as the foundation for constructing more complex tools and workflows.
-*   Manages foundational functionalities such as authentication and global configurations.
-
-## Wrapper
-The `src/cxidk/wrapper` folder provides an additional layer of simplicity on top of the underlying SDK implementations.
-*   Streamlines manipulation of global Conversational Insights configurations.
-*   Facilitates single and bulk conversation ingestion, including metadata.
-*   Manages Google Cloud Storage (GCS) blobs (creation, listing, etc.).
-*   Generates transcriptions from audio files using Speech-to-Text V1 and V2.
-
-## Workflows
-The `src/cxidk/workflow` folder introduces new classes and methods designed to address common needs not directly supported by existing API offerings.
-*   Transforms transcripts from vendors like Genesys Cloud to an Insights-compatible format.
-*   Transforms transcripts from vendors like AWS to an Insights-compatible format.
-*   Performs speaker role recognition within transcripts using Gemini.
-*   QAI Scorecard Optimization: Meta-prompting workflow to evaluate and refine QA scorecard logic using Gemini 3.0 reasoning.
-*   Granular Topic Refinement: End-to-end pipeline for refining CCAI Issue Models into deeper L2 categories via BigQuery and Gemini.
-
-# Usage Examples
-Now that you understand the library's structure, here are some practical examples demonstrating its core functionalities.
-
-## Ingest Audio with Role Recognition
-This example demonstrates a complete workflow: transcribing a mono audio file, performing role recognition using Gemini, combining the results, uploading the transcript to GCS, and then ingesting it into Conversational Insights.
+## Quickstart 1: Python SDK (`CxContext` & Read APIs)
 
 ```python
-import uuid
-from cxidk.workflow import role_recognizer as rr
-from cxidk.wrapper import speech, format, storage
-from cxidk.core import insights
+from cxidk import CxContext
+from cxidk.ai.tools import insights_calculate_stats, insights_list_conversations
 
-# Placeholder values for demonstration. Update these with your actual details.
-_PROBER_PROJECT_ID = "your-gcp-project-id"
-_MONO_SHORT_AUDIO_LOCATION = "path/to/your/audio.wav" # e.g., 'data/sample_mono_audio.wav'
-_TMP_PROBER_BUCKET = "your-gcs-bucket-name" # e.g., 'my-insights-temp-bucket'
-_PARENT = f"projects/{_PROBER_PROJECT_ID}/locations/global" # Or specific location like 'us-central1'
+cx = CxContext(project_id="my-gcp-project", location="us-central1")
 
-# Initialize components
-sp = speech.V2(project_id=_PROBER_PROJECT_ID)
-ft = format.Speech()
-role_recognizer = rr.RoleRecognizer()
-gcs = storage.Gcs(
-  project_name=_PROBER_PROJECT_ID,
-  bucket_name=_TMP_PROBER_BUCKET
-)
+stats = insights_calculate_stats(filter='medium="PHONE_CALL"', cx=cx)
+print(stats.stats)
 
-# 1. Create transcription using STT V2
-transcript = sp.create_transcription(
-  audio_file_path=_MONO_SHORT_AUDIO_LOCATION,
-  recognizer_path='projects/<project-number>/locations/global/recognizers/<recognizer-id>' # IMPORTANT: Update with your recognizer path
-)
-
-# 2. Convert transcription to a dictionary format
-transcript = ft.v2_recognizer_to_dict(transcript)
-
-# 3. Predict roles in the transcript using Gemini
-roles = role_recognizer.predict_roles(conversation=transcript)
-
-# 4. Combine transcript with recognized roles
-transcript = role_recognizer.combine(transcript, roles)
-
-# 5. Upload the processed transcript to GCS
-file_name = f'{uuid.uuid4()}.json'
-gcs.upload_blob(
-  file_name=file_name,
-  data=transcript
-)
-gcs_path = f"gs://{_TMP_PROBER_BUCKET}/{file_name}"
-
-# 6. Ingest the conversation into Conversational Insights
-ingestion = insights.Ingestion(
-  parent=_PARENT,
-  transcript_path=gcs_path
-)
-operation = ingestion.single() # Initiates the ingestion and returns an operation object
-print(f"Ingestion operation initiated: {operation.name}")
+page = insights_list_conversations(page_size=10, cx=cx)
+for convo in page.conversations:
+    print(convo.get("name"))
 ```
 
-## Ingesting a Single Conversation
-This example demonstrates how to ingest a pre-processed conversation from a GCS path directly into Conversational Insights.
+## Quickstart 2: Gemini CLI Extension & Local MCP Server (`stdio`)
+
+Authenticate with Application Default Credentials:
+
+```bash
+gcloud auth application-default login
+```
+
+Install in one command as a **Gemini CLI Extension** (wires `cxidk-mcp`, environment
+settings, and all 4 Agent Skills automatically):
+
+```bash
+gemini extensions install https://github.com/GoogleCloudPlatform/conversational-insights-devkit
+```
+
+Or add `cxidk-mcp` directly to **Gemini CLI** (`~/.gemini/settings.json`), **Claude
+Desktop / Claude Code**, **VS Code**, or **Cursor** via `uvx` (or an installed `.venv`):
+
+```json
+{
+  "mcpServers": {
+    "cxidk": {
+      "command": "uvx",
+      "args": ["--from", "cxidk[mcp]", "cxidk-mcp", "--transport", "stdio"],
+      "env": {
+        "CXIDK_PROJECT_ID": "your-gcp-project",
+        "CXIDK_LOCATION": "us-central1"
+      }
+    }
+  }
+}
+```
+
+Write tools are **disabled by default**. Pass `"--allow-writes"` (or set
+`CXIDK_ALLOW_WRITES=true`) to enable guarded promotion and ingestion tools with
+interactive MCP elicitation confirmation.
+
+## Quickstart 3: Google ADK Agents
 
 ```python
-# Assuming 'gcs_path' is already defined from a previous step or directly provided
-# Example: gcs_path = "gs://your-bucket/your-transcript.json"
-# _PARENT should be defined as "projects/your-gcp-project-id/locations/global" or specific location
+from cxidk import CxContext
+from cxidk.ai.adk import build_insights_analyst_agent, build_config_promoter_agent
 
-ingestion = insights.Ingestion(
-  parent=_PARENT, # e.g., "projects/your-gcp-project-id/locations/global"
-  transcript_path=gcs_path
+cx = CxContext(project_id="my-gcp-project", location="us-central1")
+
+# Read-only analyst agent with redacted transcript defaults
+analyst = build_insights_analyst_agent(cx=cx)
+
+# Guarded release agent (requires plan_token + ADK ToolConfirmation on writes)
+promoter = build_config_promoter_agent(
+    cx=cx,
+    allowed_projects=["dev-insights", "prod-insights"],
 )
-operation = ingestion.single()
-print(f"Ingestion operation initiated: {operation.name}")
 ```
 
-## Vendor Transcript Conversion
-Convert a transcript from a third-party vendor format (e.g., AWS) into a format compatible with Conversational Insights.
+## Quickstart 4: Vendor Transcript Conversion & Ingestion
 
 ```python
 import json
-from cxidk.wrapper import format
+import uuid
+from cxidk.workflow import format as cx_format
+from cxidk.workflow import role_recognizer as rr
+from cxidk.wrapper import insights, speech, storage
 
-# Load your AWS transcript data
-# For a full example, refer to `tests/integration/data/aws_transcript.json`
-with open('tests/integration/data/aws_transcript.json', 'r') as f:
-  aws_data = json.load(f)
+project_id = "your-gcp-project"
+location = "us-central1"
+bucket_name = "your-insights-staging-bucket"
+parent = f"projects/{project_id}/locations/{location}"
 
-# Initialize the Insights format utility
-ft = format.Insights()
+# Convert an AWS Transcribe JSON payload locally
+with open("tests/integration/data/aws_transcript.json", "r", encoding="utf-8") as f:
+    aws_payload = json.load(f)
 
-# Convert the AWS transcript
-aws_transcript = ft.from_aws(transcript=aws_data)
+insights_json = cx_format.Insights().from_aws(transcript=aws_payload)
 
-print("AWS transcript converted successfully.")
-# The 'aws_transcript' variable now holds the Insights-compatible data
+# Upload to GCS and ingest into CCAI Insights
+gcs = storage.Gcs(project_name=project_id, bucket_name=bucket_name)
+blob_name = f"{uuid.uuid4()}.json"
+gcs.upload_blob(file_name=blob_name, data=json.dumps(insights_json))
+
+ingestor = insights.Ingestion(
+    parent=parent,
+    transcript_path=f"gs://{bucket_name}/{blob_name}",
+)
+operation = ingestor.single(language_code="en-US")
+print(f"Ingestion operation started: {operation.name}")
 ```
 
-For more end-to-end examples, refer to the integration tests located under `/tests/integration/test_ingestion.py`.
+## Cloud Run & Terraform Deployment
 
-# Contributing
-We welcome contributions, bug reports, and feature requests! Please follow these steps to contribute:
+- [`deploy/mcp-cloud-run/README.md`](deploy/mcp-cloud-run/README.md): Container image and
+  `gcloud run deploy` script for stateless Streamable HTTP `cxidk-mcp` behind IAP/OIDC.
+- [`examples/terraform/`](examples/terraform/README.md): Reference Terraform modules for
+  deploying **`cxidk-mcp` on Cloud Run** ([`cloud_run_mcp/`](examples/terraform/cloud_run_mcp/README.md))
+  and **event-driven transcript ingestion on Cloud Run Functions (2nd Gen)**
+  ([`cloud_run_function_ingest/`](examples/terraform/cloud_run_function_ingest/README.md)).
 
-1.  **Fork** the Project repository.
-2.  **Create** your Feature Branch (`git checkout -b feature/AmazingFeature`).
-3.  **Commit** your Changes (`git commit -m 'Add some AmazingFeature'`).
-4.  **Push** to the Branch (`git push origin feature/AmazingFeature`).
-5.  **Open** a Pull Request.
+## Documentation for AI Systems
 
-# License
-Distributed under the Apache 2.0 License. See [LICENSE](LICENSE.txt) for more information.
-```
+- [`llms.txt`](llms.txt): Concise machine-readable index of Python SDK modules,
+  registered MCP/ADK tools, resources, prompts, and Agent Skills (also accessible
+  offline via `cxidk.get_llms_txt()` or `cxidk-mcp --print-llms-txt`).
+- [`llms-full.txt`](llms-full.txt): Self-contained full-context Markdown bundle
+  inlining quickstarts, SDK & tool schemas, filter syntax, and `SKILL.md` playbooks.
+- [`AGENTS.md`](AGENTS.md) / [`GEMINI.md`](GEMINI.md) / [`CLAUDE.md`](CLAUDE.md):
+  Contributor & coding-agent guardrails.
+- [`GEMINI_EXTENSION.md`](GEMINI_EXTENSION.md) & [`gemini-extension.json`](gemini-extension.json):
+  Gemini CLI Extension runtime context and configuration manifest.
+- `src/cxidk/ai/skills/` (mirrored at `skills/`): Portable `SKILL.md` playbooks.
+
+## License
+
+Distributed under the Apache 2.0 License. See [`LICENSE.txt`](LICENSE.txt) for details.

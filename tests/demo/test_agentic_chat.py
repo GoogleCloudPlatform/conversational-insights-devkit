@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for the agentic_chat runner main.py."""
+"""Unit and confused-deputy security tests for the agentic_chat runner."""
 
-from unittest.mock import patch
 import datetime
 import json
+from unittest.mock import patch
+
+import pytest
+
 from cxidk.workflow.demo_artifacts.runners.agentic_chat import main
+
 
 def test_file_name_generator():
     """Tests that the file name generator returns the correct format."""
@@ -25,9 +29,12 @@ def test_file_name_generator():
     assert len(file_name) == 18
     assert datetime.datetime.strptime(file_name, "%y%m%d%H%M%S%f")
 
+
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
@@ -49,7 +56,9 @@ def test_runner_no_config(
 
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
@@ -62,8 +71,10 @@ def test_runner_partially_configured_project(
     _mock_generator,
     _mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that the runner handles partially configured projects."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project-partial")
     mock_config = {
         "projects": [
             {
@@ -88,7 +99,9 @@ def test_runner_partially_configured_project(
 
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
@@ -101,8 +114,10 @@ def test_runner_no_virtual_agents(
     _mock_generator,
     _mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that the runner handles projects with no virtual agents."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project-no-va")
     mock_config = {
         "projects": [
             {
@@ -129,7 +144,9 @@ def test_runner_no_virtual_agents(
 
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
@@ -142,8 +159,10 @@ def test_runner_valid_config_quit(
     mock_generator,
     _mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
-    """Tests a valid run with a conversation that quits."""
+    """Tests a valid allowlisted run with a conversation that quits."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project")
     mock_config = {
         "projects": [
             {
@@ -155,11 +174,11 @@ def test_runner_valid_config_quit(
                 "virtual_agents": [
                     {
                         "agent": "test-agent",
-                        "type": "classic",
+                        "type": "deterministic",
                         "location": "us-central1",
                         "conversation_profile": "test-profile",
                         "topics": "test-topics",
-                        "environment": "test-env",
+                        "environment": "stg",
                     }
                 ],
             }
@@ -180,7 +199,9 @@ def test_runner_valid_config_quit(
 
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
@@ -193,8 +214,10 @@ def test_runner_long_conversation(
     mock_generator,
     _mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that a long conversation is terminated."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project")
     mock_config = {
         "projects": [
             {
@@ -206,11 +229,11 @@ def test_runner_long_conversation(
                 "virtual_agents": [
                     {
                         "agent": "test-agent",
-                        "type": "classic",
+                        "type": "deterministic",
                         "location": "us-central1",
                         "conversation_profile": "test-profile",
                         "topics": "test-topics",
-                        "environment": "test-env",
+                        "environment": "stg",
                     }
                 ],
             }
@@ -230,7 +253,9 @@ def test_runner_long_conversation(
 
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
 @patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
@@ -243,8 +268,10 @@ def test_runner_send_message_exception(
     mock_generator,
     _mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that the runner handles exceptions during message sending."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project")
     mock_config = {
         "projects": [
             {
@@ -256,11 +283,11 @@ def test_runner_send_message_exception(
                 "virtual_agents": [
                     {
                         "agent": "test-agent",
-                        "type": "classic",
+                        "type": "deterministic",
                         "location": "us-central1",
                         "conversation_profile": "test-profile",
                         "topics": "test-topics",
-                        "environment": "test-env",
+                        "environment": "stg",
                     }
                 ],
             }
@@ -282,3 +309,118 @@ def test_runner_send_message_exception(
     mock_logging.error.assert_called_with(
         mock_dialogflow.return_value.send_message.side_effect
     )
+
+
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.import_config")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.agentic_chat.main.content_generator.Generator"
+)
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.agents.Dialogflow")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.time.sleep")
+@patch("cxidk.workflow.demo_artifacts.runners.agentic_chat.main.random")
+def test_runner_fails_closed_and_isolates_invalid_projects(
+    mock_random,
+    _mock_sleep,
+    mock_dialogflow,
+    mock_generator,
+    mock_import_config,
+    monkeypatch,
+):
+    """Unset allowlists fail closed; unallowlisted sibling is skipped safely."""
+    monkeypatch.delenv("ALLOWED_PROJECT_IDS", raising=False)
+    config = {
+        "projects": [
+            {
+                "project_id": "attacker-owned-project",
+                "generation_profile": {
+                    "theme": "test-theme",
+                    "max_conversations_per_run": {"agentic": 1},
+                },
+                "virtual_agents": [
+                    {
+                        "agent": "test-agent",
+                        "type": "deterministic",
+                        "location": "us-central1",
+                        "conversation_profile": "test-profile",
+                        "topics": "test-topics",
+                        "environment": "prod",
+                    }
+                ],
+            },
+            {
+                "project_id": "valid-project",
+                "generation_profile": {
+                    "theme": "test-theme",
+                    "max_conversations_per_run": {"agentic": 1},
+                },
+                "virtual_agents": [
+                    {
+                        "agent": "test-agent",
+                        "type": "deterministic",
+                        "location": "us-central1",
+                        "conversation_profile": "test-profile",
+                        "topics": "test-topics",
+                        "environment": "prod",
+                    }
+                ],
+            },
+        ]
+    }
+    mock_import_config.return_value = [json.dumps(config)]
+
+    assert main.runner(None) == "0 conversations generated"
+    mock_generator.assert_not_called()
+    mock_dialogflow.assert_not_called()
+
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "valid-project")
+    mock_random.randint.return_value = 1
+    mock_generator.return_value.create_turn.return_value = json.dumps(
+        {"message": "quit"}
+    )
+    assert main.runner(None) == "1 conversations generated"
+    mock_dialogflow.assert_called_once_with(
+        project_id="valid-project",
+        location="us-central1",
+        conversation_profile="test-profile",
+    )
+
+
+@pytest.mark.parametrize(
+    "bad_va",
+    [
+        {
+            "agent": "agent/../../hack",
+            "type": "deterministic",
+            "location": "us-central1",
+            "conversation_profile": "prof1",
+            "environment": "prod",
+        },
+        {
+            "agent": "agent1",
+            "type": "deterministic",
+            "location": "us-central1?x=1",
+            "conversation_profile": "prof1",
+            "environment": "prod",
+        },
+        {
+            "agent": "agent1",
+            "type": "deterministic",
+            "location": "us-central1",
+            "conversation_profile": "../other",
+            "environment": "prod",
+        },
+    ],
+)
+def test_validate_project_rejects_va_traversal(bad_va, monkeypatch):
+    """Path traversal in agent, location, or conversation_profile raises ValueError."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "valid-project")
+    project = {
+        "project_id": "valid-project",
+        "generation_profile": {
+            "theme": "test-theme",
+            "max_conversations_per_run": {"agentic": 1},
+        },
+        "virtual_agents": [bad_va],
+    }
+    with pytest.raises(ValueError):
+        main._validate_project(project)  # pylint: disable=protected-access

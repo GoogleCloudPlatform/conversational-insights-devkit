@@ -1,0 +1,56 @@
+# This GitHub Actions workflow automatically generates or updates example
+# Colab notebooks (.ipynb) for the project's features using the Gemini API.
+
+name: 'Docs - Update Notebooks'
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow from the Actions tab
+
+permissions:
+  contents: write # Required to commit the generated notebooks back to the repository
+
+jobs:
+  generate-notebooks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 'Install dependencies'
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install "google-genai>=2.30.0,<3.0.0"
+
+      - name: 'Run notebook generation script'
+        run: python .github/scripts/update_notebooks.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: 'List generated notebooks'
+        run: |
+          echo "Listing files in the examples directory:"
+          ls -l examples/
+
+      - name: 'Configure Git'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 'Commit and push changes'
+        run: |
+          # Check if there are any changes in the examples directory
+          if ! git diff --quiet examples/; then
+            git add examples/
+            git commit -m "docs(examples): 🤖 Generate/update example notebooks"
+            git push
+            echo "Example notebooks have been committed and pushed."
+          else
+            echo "No changes to example notebooks to commit."
+          fi

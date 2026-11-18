@@ -1,0 +1,36 @@
+name: Cross checker
+
+on:
+  # Run on every push to check all files in the branch
+  push:
+    branches:
+      - main
+      - master
+      - dev
+      - automation
+  # Run on every pull request targeting the main branch
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  check-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+          
+      - name: Check License Headers
+        # Using the viperproject action as a robust example
+        uses: viperproject/check-license-header@v2
+        with:
+          # Path to the config file we created above
+          config: .github/cross-checker/config.json
+          # Set strict to true to fail the workflow if any file is not covered
+          # or if the header is missing/incorrect.
+          strict: false
+          path: .

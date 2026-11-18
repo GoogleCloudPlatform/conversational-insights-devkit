@@ -40,6 +40,38 @@ _EXPECTED_RESOURCE_TYPES = [
     "type.googleapis.com/google.cloud.agentstudio.v1.Agent",
 ]
 
+_UNSAFE_SEGMENT_CHARS = ("/", "\\", "?", "#", "%", "@", " ", "\t", "\r", "\n")
+
+
+def _validate_segment(value: Any, field_name: str) -> str:
+    """Validates a single GCP resource path segment against path/query injection."""
+    if not isinstance(value, str) or not value or value.strip() != value:
+        raise ValueError(f"{field_name} must be a non-empty string.")
+    if ".." in value or any(ch in value for ch in _UNSAFE_SEGMENT_CHARS):
+        raise ValueError(
+            f"{field_name} contains unsafe URL/path characters: {value!r}"
+        )
+    if any(ord(ch) < 32 or ord(ch) == 127 for ch in value):
+        raise ValueError(f"{field_name} contains control characters.")
+    return value
+
+
+def _validate_relative_path(value: Optional[str], field_name: str) -> str:
+    """Validates a relative resource/session path against traversal or SSRF."""
+    if not isinstance(value, str) or not value or value.strip() != value:
+        raise ValueError(f"{field_name} must be a non-empty string.")
+    if (
+        value.startswith("/")
+        or "//" in value
+        or ".." in value
+        or any(ch in value for ch in ("\\", "?", "#", "%", "@", " ", "\t", "\r", "\n"))
+        or any(ord(ch) < 32 or ord(ch) == 127 for ch in value)
+    ):
+        raise ValueError(
+            f"{field_name} contains unsafe relative path characters: {value!r}"
+        )
+    return value
+
 
 class PolySynth:
     """A client for interacting with the PolySynth conversational agent API.
@@ -78,8 +110,9 @@ class PolySynth:
             config: An optional, pre-configured configuration handler.
         """
 
-        self.project_id = project_id
-        self.location = location
+        self.project_id = _validate_segment(project_id, "project_id")
+        self.location = _validate_segment(location, "location")
+        self._explicit_auth = auth is not None
         self.auth = auth or base.Auth()
         self.config = config or base.Config(environment=base.Environments(env))
         self.credentials_token: Optional[str] = None
@@ -106,15 +139,18 @@ class PolySynth:
         return f"{self.config.set_polysynth_endpoint()}{self.api_version}/"
 
     def _set_credentials(self) -> Optional[str]:
-        """Retrieves and refreshes the default application credentials.
+        """Retrieves and refreshes the credentials token.
 
-        This method obtains the default credentials, refreshes them if they are
-        expired, and stores the access token.
+        Uses explicit `self.auth` credentials when supplied, otherwise obtains
+        default credentials and refreshes them if expired.
 
         Returns:
             The access token as a string, or None if it could not be retrieved.
         """
-        credentials, _ = google.auth.default()
+        if self._explicit_auth:
+            credentials = self.auth.creds
+        else:
+            credentials, _ = google.auth.default()
         if not credentials.valid or credentials.expired:
             credentials.refresh(Request())
 
@@ -160,9 +196,12 @@ class PolySynth:
         headers["Authorization"] = f"Bearer {access_token}"  # Add authorization header
         if json is not None and "Content-Type" not in headers:
             headers["Content-Type"] = "application/json"  # Ensure Content-Type for JSON
+        safe_rel_url = _validate_relative_path(str(url), "url")
+        full_url = self.base_url + safe_rel_url
+        base.validate_request_url(full_url)
         try:
             response = requests.request(
-                method, self.base_url + url, headers=headers,
+                method, full_url, headers=headers,
                 json=json, params=params, timeout=operation_timeout
             )
             response.raise_for_status()
@@ -284,9 +323,9 @@ class PolySynth:
         Returns:
             The fully qualified session ID string.
         """
-        self.agent_id = agent_id
-        if unique_id:
-            session_id = unique_id
+        self.agent_id = _validate_segment(agent_id, "agent_id")
+        if unique_id is not None:
+            session_id = _validate_segment(unique_id, "unique_id")
         else:
             session_id = str(uuid.uuid4())
 
@@ -307,14 +346,16 @@ class PolySynth:
             The agent's text response as a concatenated string. If no text is
             returned, it provides the raw session output or a session end message.
         """
-        payload = {"config": {"session": session_id}}
+        resolved_session = session_id or self.current_session_id
+        safe_session = _validate_relative_path(resolved_session, "session_id")
+        payload: Dict[str, Any] = {"config": {"session": safe_session}}
         # Construct the input part - currently only text
         session_input: Dict[str, Any] = {}
         if text is not None:
             session_input["text"] = text
 
         payload["inputs"] = session_input
-        url = f"{session_id}:runSession"
+        url = f"{safe_session}:runSession"
         session_output = self._make_request("POST", url, json=payload)
 
         text_response = ''
@@ -373,8 +414,9 @@ class AgentStudio:
             config: An optional, pre-configured configuration handler.
         """
 
-        self.project_id = project_id
-        self.location = location
+        self.project_id = _validate_segment(project_id, "project_id")
+        self.location = _validate_segment(location, "location")
+        self._explicit_auth = auth is not None
         self.auth = auth or base.Auth()
         self.config = config or base.Config(environment=base.Environments(env))
         self.credentials_token: Optional[str] = None
@@ -405,15 +447,18 @@ class AgentStudio:
         return f"{endpoint}{self.api_version}/"
 
     def _set_credentials(self) -> Optional[str]:
-        """Retrieves and refreshes the default application credentials.
+        """Retrieves and refreshes the credentials token.
 
-        This method obtains the default credentials, refreshes them if they are
-        expired, and stores the access token.
+        Uses explicit `self.auth` credentials when supplied, otherwise obtains
+        default credentials and refreshes them if expired.
 
         Returns:
             The access token as a string, or None if it could not be retrieved.
         """
-        credentials, _ = google.auth.default()
+        if self._explicit_auth:
+            credentials = self.auth.creds
+        else:
+            credentials, _ = google.auth.default()
         if not credentials.valid or credentials.expired:
             credentials.refresh(Request())
 
@@ -459,9 +504,12 @@ class AgentStudio:
         headers["Authorization"] = f"Bearer {access_token}"  # Add authorization header
         if json is not None and "Content-Type" not in headers:
             headers["Content-Type"] = "application/json"  # Ensure Content-Type for JSON
+        safe_rel_url = _validate_relative_path(str(url), "url")
+        full_url = self.base_url + safe_rel_url
+        base.validate_request_url(full_url)
         try:
             response = requests.request(
-                method, self.base_url + url, headers=headers,
+                method, full_url, headers=headers,
                 json=json, params=params, timeout=operation_timeout
             )
             response.raise_for_status()
@@ -583,9 +631,9 @@ class AgentStudio:
         Returns:
             The fully qualified session ID string.
         """
-        self.agent_id = agent_id
-        if unique_id:
-            session_id = unique_id
+        self.agent_id = _validate_segment(agent_id, "agent_id")
+        if unique_id is not None:
+            session_id = _validate_segment(unique_id, "unique_id")
         else:
             session_id = str(uuid.uuid4())
 
@@ -606,17 +654,17 @@ class AgentStudio:
             The agent's text response as a concatenated string. If no text is
             returned, it provides the raw session output or a session end message.
         """
-        if not session_id:
-            session_id = self.current_session_id
+        resolved_session = session_id or self.current_session_id
+        safe_session = _validate_relative_path(resolved_session, "session_id")
 
-        payload = {"config": {"session": session_id}}
+        payload: Dict[str, Any] = {"config": {"session": safe_session}}
         # Construct the input part - currently only text
         session_input: Dict[str, Any] = {}
         if text is not None:
             session_input["text"] = text
 
         payload["inputs"] = session_input
-        url = f"{session_id}:runSession"
+        url = f"{safe_session}:runSession"
         session_output = self._make_request("POST", url, json=payload)
 
         text_response = ''
@@ -669,15 +717,21 @@ class Dialogflow:
             auth: An optional, pre-configured authentication handler.
             config: An optional, pre-configured configuration handler.
         """
-        self.project_id = project_id
-        self.location = location
+        self.project_id = _validate_segment(project_id, "project_id")
+        self.location = _validate_segment(location, "location")
         self.auth = auth or base.Auth()
         self.config = config or base.Config()
-        self.conversation_profile = conversation_profile
-        self.parent = f"projects/{project_id}/locations/{location}"
+        self.conversation_profile = _validate_segment(
+            conversation_profile, "conversation_profile"
+        )
+        self.parent = f"projects/{self.project_id}/locations/{self.location}"
 
-        self.conversation_client = ConversationsClient()
-        self.participant_client = ParticipantsClient()
+        self.conversation_client = ConversationsClient(
+            credentials=self.auth.creds
+        )
+        self.participant_client = ParticipantsClient(
+            credentials=self.auth.creds
+        )
 
         self.conversation_name: Optional[str] = None
         self.participant_name: Optional[str] = None
@@ -738,7 +792,7 @@ class Dialogflow:
         Returns:
             The newly created ConversationProfile object.
         """
-        client = ConversationProfilesClient()
+        client = ConversationProfilesClient(credentials=self.auth.creds)
         conversation_profile = dialogflow_v2beta1.ConversationProfile(
             display_name=display_name,
             automated_agent_config=dialogflow_v2beta1.AutomatedAgentConfig(

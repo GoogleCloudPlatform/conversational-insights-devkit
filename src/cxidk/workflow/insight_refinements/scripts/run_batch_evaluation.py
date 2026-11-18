@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Day 2 Operational Script: Batch Analysis & Evaluation.
 
@@ -13,7 +26,10 @@ import argparse
 import sys
 import json
 from typing import Optional
+
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+
 from cxidk.workflow.insight_refinements.schemas.input import (
     BatchAnalysisInput,
     GCPConfig,
@@ -25,15 +41,7 @@ from cxidk.workflow.insight_refinements.schemas.input import (
 from cxidk.workflow.insight_refinements.analysis import run_batch_analysis
 from cxidk.workflow.insight_refinements.bulk_feedback import BulkFeedbackManager
 from cxidk.workflow.insight_refinements.optimization import ScorecardOptimizer
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 
@@ -61,8 +69,14 @@ class ScriptSettings(BaseSettings):
     bq_main_table: str = "qai_analysis_results"
 
 
-
 def parse_args():
+    """Parses command-line arguments for the Day 2 operations script.
+
+    Returns:
+        argparse.Namespace: The parsed arguments, covering GCP/CCAI/BigQuery
+        overrides, analysis options, bulk feedback upload and scorecard
+        optimization.
+    """
     parser = argparse.ArgumentParser(
         description="Run batch analysis and evaluation for QAI Optimization."
     )
@@ -105,21 +119,81 @@ def parse_args():
     return parser.parse_args()
 
 
+def run_optimization(item_path: str, settings: ScriptSettings) -> None:
+    """Runs the meta-prompting optimization workflow for a single scorecard item.
+
+    Args:
+        item_path: Path to the JSON file holding the failing scorecard item
+            and the disagreement evidence used to drive the optimization.
+        settings: Resolved script settings providing the GCP project and the
+            LLM model used by the optimizer.
+
+    Exits with status 1 if the optimization fails.
+    """
+    try:
+        with open(item_path, "r", encoding="utf-8") as f:
+            item_data = json.load(f)
+
+        optimizer = ScorecardOptimizer(
+            project_id=settings.gcp_project_id,
+            location_id="global",  # Optimization region
+            model_name=settings.llm_model_name,
+        )
+
+        optimized = optimizer.optimize_question(
+            question=item_data["question"],
+            instructions=item_data["instructions"],
+            answers=item_data["answers"],
+            disagreement_cases=item_data["evidence"],
+            reference_examples=item_data.get("few_shot_examples"),
+        )
+
+        print("\n=== OPTIMIZED SCORECARD ITEM ===")
+        print(optimized.model_dump_json(indent=2))
+
+        failures = optimizer.verify_optimization(optimized, item_data["evidence"])
+        if failures:
+            print(f"\n⚠️ Verification Found {len(failures)} Disagreements:")
+            print(json.dumps(failures, indent=2))
+        else:
+            print(
+                "\n✅ Verification Passed: New instructions align with all evidence cases."
+            )
+
+    # pylint: disable-next=broad-exception-caught  # CLI boundary: any failure must exit(1)
+    except Exception as e:
+        logger.error("Optimization failed: %s", e)
+        sys.exit(1)
+
+
 def main():
+    """Runs the Day 2 batch analysis and evaluation workflow.
+
+    Loads settings from the environment (falling back to CLI arguments), then
+    either runs the exclusive meta-prompting optimization workflow or the
+    standard workflow: optional bulk feedback upload, batch analysis and the
+    evaluation phase. Exits with status 1 on failure.
+    """
+    load_dotenv()
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     args = parse_args()
 
     # 1. Load Settings (Env Vars -> CLI Overrides)
     try:
         settings = ScriptSettings()
+    # pylint: disable-next=broad-exception-caught  # any settings error falls back to CLI args
     except Exception as e:
-        logger.warning(f"Could not load full settings from environment: {e}")
+        logger.warning("Could not load full settings from environment: %s", e)
         logger.info("Attempting to fallback to CLI arguments...")
         if (
             not (args.project_id and args.scorecard_id and args.dataset_id)
             and not args.optimize_scorecard_item
         ):
             logger.error(
-                "Missing required configuration. Set environment variables (e.g. GCP_PROJECT_ID) or provide CLI args."
+                "Missing required configuration. Set environment variables "
+                "(e.g. GCP_PROJECT_ID) or provide CLI args."
             )
             sys.exit(1)
 
@@ -135,64 +209,36 @@ def main():
     # 2. Optimization Workflow (Exclusive)
     if args.optimize_scorecard_item:
         logger.info(
-            f"Starting Meta-Prompting Optimization for item: {args.optimize_scorecard_item}"
+            "Starting Meta-Prompting Optimization for item: %s",
+            args.optimize_scorecard_item,
         )
-        try:
-            with open(args.optimize_scorecard_item, "r") as f:
-                item_data = json.load(f)
-
-            optimizer = ScorecardOptimizer(
-                project_id=settings.gcp_project_id,
-                location_id="global",  # Optimization region
-                model_name=settings.llm_model_name,
-            )
-
-            optimized = optimizer.optimize_question(
-                question=item_data["question"],
-                instructions=item_data["instructions"],
-                answers=item_data["answers"],
-                disagreement_cases=item_data["evidence"],
-                reference_examples=item_data.get("few_shot_examples"),
-            )
-
-            print("\n=== OPTIMIZED SCORECARD ITEM ===")
-            print(optimized.model_dump_json(indent=2))
-
-            failures = optimizer.verify_optimization(optimized, item_data["evidence"])
-            if failures:
-                print(f"\n⚠️ Verification Found {len(failures)} Disagreements:")
-                print(json.dumps(failures, indent=2))
-            else:
-                print(
-                    "\n✅ Verification Passed: New instructions align with all evidence cases."
-                )
-
-        except Exception as e:
-            logger.error(f"Optimization failed: {e}")
-            sys.exit(1)
+        run_optimization(args.optimize_scorecard_item, settings)
         return
 
     # 3. Standard Analysis Workflow
+    gcp_config = GCPConfig(
+        project_id=args.project_id or settings.gcp_project_id,
+        project_number=settings.gcp_project_number,
+        location_id=settings.gcp_location_id,
+        staging_bucket=args.staging_bucket or settings.gcp_staging_bucket,
+    )
+    ccai_config = CCAIConfig(
+        scorecard_id=args.scorecard_id or settings.ccai_scorecard_id,
+        insights_endpoint=settings.ccai_insights_endpoint,
+    )
+    analysis_config = AnalysisConfig(
+        analysis_percentage=args.analysis_percentage,
+        enable_bulk_analysis=args.enable_bulk_analysis,
+        filter=args.analysis_filter,
+    )
     config = BatchAnalysisInput(
-        gcp=GCPConfig(
-            project_id=args.project_id or settings.gcp_project_id,
-            project_number=settings.gcp_project_number,
-            location_id=settings.gcp_location_id,
-            staging_bucket=args.staging_bucket or settings.gcp_staging_bucket,
-        ),
-        ccai=CCAIConfig(
-            scorecard_id=args.scorecard_id or settings.ccai_scorecard_id,
-            insights_endpoint=settings.ccai_insights_endpoint,
-        ),
+        gcp=gcp_config,
+        ccai=ccai_config,
         llm=LLMConfig(
             model_name=settings.llm_model_name,
             location_id="global",
         ),
-        analysis=AnalysisConfig(
-            analysis_percentage=args.analysis_percentage,
-            enable_bulk_analysis=args.enable_bulk_analysis,
-            filter=args.analysis_filter,
-        ),
+        analysis=analysis_config,
         bigquery=BigQueryConfig(
             dataset_id=args.dataset_id or settings.bq_dataset_id,
             staging_table_id=settings.bq_staging_table,
@@ -201,7 +247,9 @@ def main():
     )
 
     logger.info(
-        f"Starting job for Project: {config.gcp.project_id}, Scorecard: {config.ccai.scorecard_id}"
+        "Starting job for Project: %s, Scorecard: %s",
+        gcp_config.project_id,
+        ccai_config.scorecard_id,
     )
 
     # 4. Bulk Feedback Upload (if requested)
@@ -214,7 +262,9 @@ def main():
             sys.exit(1)
 
         logger.info(
-            f"Uploading feedback from {args.upload_feedback_csv} via bucket {bucket}..."
+            "Uploading feedback from %s via bucket %s...",
+            args.upload_feedback_csv,
+            bucket,
         )
         bulk_manager = BulkFeedbackManager(config)
         bulk_manager.upload_from_local_csv(args.upload_feedback_csv, bucket)
@@ -223,12 +273,13 @@ def main():
     # 5. Run Analysis
     try:
         results = run_batch_analysis(config)
-        if config.analysis.enable_bulk_analysis:
+        if analysis_config.enable_bulk_analysis:
             logger.info("Bulk Analysis job completed successfully via Devkit wrappers.")
         else:
-            logger.info(f"Analysis complete. Processed {len(results)} conversations.")
+            logger.info("Analysis complete. Processed %d conversations.", len(results))
+    # pylint: disable-next=broad-exception-caught  # CLI boundary: any failure must exit(1)
     except Exception as e:
-        logger.error(f"Analysis failed: {e}")
+        logger.error("Analysis failed: %s", e)
         sys.exit(1)
 
     # 6. Run Evaluation

@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Input Schemas for QAI Optimization Framework.
 
@@ -8,7 +21,7 @@ the input configuration and data for the batch analysis and evaluation workflow.
 
 from typing import Optional, Dict
 from pydantic import BaseModel, Field, field_validator
-from src.core import base
+from cxidk.core import base
 
 
 class GCPConfig(BaseModel):
@@ -45,7 +58,10 @@ class CCAIConfig(BaseModel):
 
     ccai_insights_project_id: Optional[str] = Field(
         default=None,
-        description="The GCP Project ID where CCAI Insights is hosted. Falls back to GCPConfig.project_id.",
+        description=(
+            "The GCP Project ID where CCAI Insights is hosted."
+            " Falls back to GCPConfig.project_id."
+        ),
     )
     insights_endpoint: Optional[str] = Field(
         default=None,
@@ -63,8 +79,20 @@ class CCAIConfig(BaseModel):
     )
 
     @field_validator("insights_endpoint")
-    def validate_endpoint(cls, v):
-        if v and not v.endswith("googleapis.com"):
+    @classmethod
+    def validate_endpoint(cls, v: Optional[str]) -> Optional[str]:
+        """Ensures the configured Insights endpoint is a googleapis.com domain.
+
+        Args:
+            v (Optional[str]): The endpoint value being validated.
+
+        Returns:
+            Optional[str]: The validated endpoint value.
+
+        Raises:
+            ValueError: If the endpoint is set but is not a googleapis.com domain.
+        """
+        if v and not base.is_trusted_google_host(v):
             raise ValueError("Endpoint must be a valid googleapis.com domain")
         return v
 
@@ -98,7 +126,8 @@ class AnalysisConfig(BaseModel):
         max_concurrent_calls (int): Maximum number of concurrent calls to CCAI Insights.
         chunk_size (int): Size of chunks for batch processing.
         page_size (int): Number of conversations to list per page.
-        annotator_selector (Optional[Dict[str, bool]]): Configuration to enable/disable specific annotators.
+        annotator_selector (Optional[Dict[str, bool]]): Configuration to enable/disable
+            specific annotators.
     """
 
     analysis_percentage: int = Field(
@@ -124,7 +153,10 @@ class AnalysisConfig(BaseModel):
     )
     filter: str = Field(
         default="",
-        description="Filter string to select conversations for bulk analysis (e.g. 'labels.analyzed=false').",
+        description=(
+            "Filter string to select conversations for bulk analysis"
+            " (e.g. 'labels.analyzed=false')."
+        ),
     )
     annotator_selector: Optional[Dict[str, bool]] = Field(
         default={
@@ -155,7 +187,10 @@ class BigQueryConfig(BaseModel):
     dataset_id: str = Field(..., description="The BigQuery dataset ID.")
     project_id: Optional[str] = Field(
         default=None,
-        description="The target Google Cloud Project ID for BigQuery. Falls back to GCPConfig.project_id if not provided.",
+        description=(
+            "The target Google Cloud Project ID for BigQuery."
+            " Falls back to GCPConfig.project_id if not provided."
+        ),
     )
     staging_table_id: str = Field(
         ..., description="The ID of the staging table for results."
@@ -224,6 +259,7 @@ class BatchAnalysisInput(BaseModel):
 
     def get_config(self) -> base.Config:
         """Adapter method to generate the Devkit's native Config object."""
+        # pylint: disable-next=no-member  # pydantic Field() default inferred as FieldInfo
         return base.Config(region=self.gcp.location_id)
 
 

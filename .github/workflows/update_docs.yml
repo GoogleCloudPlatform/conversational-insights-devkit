@@ -1,0 +1,53 @@
+# This GitHub Actions workflow automatically updates the README.md file
+# using the Gemini API and commits the changes back to the repository.
+
+name: 'Docs - Update Docs'
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow from the Actions tab
+
+permissions:
+  contents: write      # Required to push commits back to the repository
+  pull-requests: write # Required if you want to change this to create a pull request
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 'Install dependencies'
+        run: |
+          python -m pip install --upgrade pip
+          # Assuming your project has a requirements.txt file for other dependencies
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install "google-genai>=2.30.0,<3.0.0"
+
+      - name: 'Run docstring update script'
+        run: python .github/scripts/update_docs.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: 'Configure Git'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 'Commit and push changes'
+        run: |
+          # Check if there are any changes in the README.md file
+          if ! git diff --quiet README.md; then
+            git add README.md
+            git commit -m "docs(readme): ✨ Improve README with Gemini"
+            git push
+            echo "README.md changes have been committed and pushed."
+          else
+            echo "No changes to README.md to commit."
+          fi

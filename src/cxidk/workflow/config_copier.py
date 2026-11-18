@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 """Workflow for copying QA Scorecards between GCP environments."""
 
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 from google.cloud.contact_center_insights_v1 import types
 from cxidk.core import base
 from cxidk.wrapper import insights
@@ -63,13 +63,13 @@ class ScorecardCopier:
         self.auth = auth or base.Auth()
         self.config = config or base.Config()
 
-        self.source_scorecards_wrapper = insights.Scorecards(
+        self.source_scorecards_wrapper = insights.LegacyScorecards(
             project_id=self.source_project_id,
             location=self.source_location,
             auth=self.auth,
             config=self.config,
         )
-        self.dest_scorecards_wrapper = insights.Scorecards(
+        self.dest_scorecards_wrapper = insights.LegacyScorecards(
             project_id=self.dest_project_id,
             location=self.dest_location,
             auth=self.auth,
@@ -136,9 +136,9 @@ class ScorecardCopier:
         copied_questions_count = 0
         for q in source_questions_pager:
             clean_question = types.QaQuestion(
-                display_name=q.display_name,
+                abbreviation=q.abbreviation,
                 question_body=q.question_body,
-                answer_choice_config=q.answer_choice_config,
+                answer_choices=q.answer_choices,
                 tags=q.tags,
                 order=q.order,
             )

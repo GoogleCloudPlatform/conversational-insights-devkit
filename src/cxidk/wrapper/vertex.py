@@ -14,15 +14,19 @@
 
 """A wrapper for the Google Cloud Vertex AI Gemini API."""
 
+from enum import StrEnum
 import logging
+import os
 import random
 import time
-from typing import Any, Dict, Optional
-from strenum import StrEnum
+from typing import Any, Dict, List, Optional, Union
+
 from google.genai import types
 from google import genai
 
 from cxidk.core import base
+
+logger = logging.getLogger(__name__)
 
 
 class GeminiModels(StrEnum):
@@ -82,28 +86,44 @@ class Generator:
         self,
         project_id: str,
         location: str,
-        version: Optional[GeminiModels] = None,
+        version: Optional[Union[GeminiModels, str]] = None,
         auth: Optional[base.Auth] = None,
         config: Optional[base.Config] = None,
+        safety_settings: Optional[List[types.SafetySetting]] = None,
     ):
         """Initializes the Generator with project and location details.
 
         Args:
             project_id: The Google Cloud project ID.
             location: The location where the Vertex AI endpoint is hosted.
-            version: The name of the Gemini model to use.
+            version: The name of the Gemini model to use. Defaults to
+                `CXIDK_GEMINI_MODEL` if set, otherwise `GeminiModels.GEMINI_2_5_FLASH`.
             auth: An authentication object.
             config: A configuration object.
+            safety_settings: Optional custom Gemini safety settings.
         """
         self.auth = auth or base.Auth()
         self.config = config or base.Config()
 
         self.project_id = project_id
         self.location = location
-        self.version = version if version is not None else GeminiModels.GEMINI_2_5_FLASH
+        env_model = os.environ.get("CXIDK_GEMINI_MODEL")
+        self.version: str = (
+            str(version)
+            if version is not None
+            else (env_model or GeminiModels.GEMINI_2_5_FLASH)
+        )
+        self.safety_settings = (
+            safety_settings
+            if safety_settings is not None
+            else _DEFAULT_SAFETY_SETTINGS
+        )
 
         self.client = genai.Client(
-            vertexai=True, project=self.project_id, location=self.location
+            vertexai=True,
+            project=self.project_id,
+            location=self.location,
+            credentials=self.auth.creds,
         )
 
     def content(
@@ -115,6 +135,7 @@ class Generator:
         top_p: Optional[float] = 0.95,
         output_schema: Optional[Dict[str, Any]] = None,
         output_mime_type: str = MimeTypes.TEXT_PLAIN,
+        safety_settings: Optional[List[types.SafetySetting]] = None,
     ) -> str:
         """Generates content based on a text prompt using the configured Gemini model.
 
@@ -126,11 +147,16 @@ class Generator:
             top_p: The cumulative probability of tokens to consider.
             output_mime_type: The desired MIME type of the output.
             output_schema: An optional schema to enforce a specific structure on the output.
+            safety_settings: Optional per-call safety settings override.
 
         Returns:
             The generated content as a string.
         """
-
+        effective_safety = (
+            safety_settings
+            if safety_settings is not None
+            else self.safety_settings
+        )
         raw_gemini_response = None
         for attempt in range(6):
             try:
@@ -146,19 +172,23 @@ class Generator:
                         top_p=top_p,
                         response_mime_type=output_mime_type,
                         response_schema=output_schema,
-                        safety_settings=_DEFAULT_SAFETY_SETTINGS,
+                        safety_settings=effective_safety,
                     ),
                 )
                 break
+            # The genai SDK surfaces rate limiting as several unrelated exception types,
+            # so the message is inspected here and non-retryable errors are re-raised below.
+            # pylint: disable-next=broad-exception-caught  # retry loop; non-429s re-raised
             except Exception as e:
                 if (
                     "429" in str(e)
                     or "RESOURCE_EXHAUSTED" in str(e)
                     or "Too Many Requests" in str(e)
                 ) and attempt < 5:
-                    sleep_time = (2 ** attempt) + random.uniform(1.0, 3.0)
-                    logging.warning(
-                        "429 Rate limited by Gemini API. Retrying in %.1f seconds... (attempt %s/5)",
+                    sleep_time = (2**attempt) + random.uniform(1.0, 3.0)
+                    logger.warning(
+                        "429 Rate limited by Gemini API. Retrying in %.1f seconds..."
+                        " (attempt %s/5)",
                         sleep_time,
                         attempt + 1,
                     )

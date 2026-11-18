@@ -1,12 +1,12 @@
-# Use an official Google Cloud Functions base image for Python 3.12
-FROM gcr.io/google-appengine/python:2024-04-18-20_00_RC00
+# Use an official Google Cloud Functions base image for Python 3.13
+FROM us-docker.pkg.dev/cloud-functions/python/3.13:latest
 
 # Switch to the root user to install system packages
 USER root
 
 # Copy the requirements file and install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Switch back to a non-privileged user for security
 USER nonroot
@@ -17,7 +17,12 @@ COPY . .
 # The base image's entrypoint will run the Functions Framework
 
 
-### Command to deploy
+### Least-privilege IAM prerequisite on the shared config bucket:
+# gcloud storage buckets add-iam-policy-binding gs://insights-pipeline-producer-configs \
+#   --member="serviceAccount:insights-pipeline-runner@demos-ces.iam.gserviceaccount.com" \
+#   --role="roles/storage.objectViewer"
+
+### Command to deploy (uses ';'-delimited --set-env-vars for comma-separated allowlists)
 # gcloud functions deploy cxidk-pipeline-agentic-chat \
 #   --gen2 \
 #   --runtime=python313 \
@@ -26,7 +31,8 @@ COPY . .
 #   --entry-point=runner \
 #   --trigger-http \
 #   --no-allow-unauthenticated \
-#   --service-account insights-pipeline-runner@demos-ces.iam.gserviceaccount.com \
+#   --service-account=insights-pipeline-runner@demos-ces.iam.gserviceaccount.com \
+#   --set-env-vars="^;^ALLOWED_PROJECT_IDS=<COMMA_SEPARATED_PROJECT_IDS>;ALLOWED_BUCKETS=<COMMA_SEPARATED_BUCKET_NAMES>" \
 #   --memory=8GB \
 #   --cpu=2 \
 #   --timeout=3600

@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Evaluation Logic for QAI Optimization Framework.
 
@@ -6,17 +19,19 @@ This module provides classes and functions for comparing predicted analysis
 results against golden references and calculating performance metrics.
 """
 
-import pandas as pd
 import logging
-from typing import Any, Dict, List
+from collections import defaultdict
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 from sklearn.metrics import (
     precision_recall_fscore_support,
     cohen_kappa_score,
     confusion_matrix,
 )
+
 from tabulate import tabulate
-from collections import defaultdict
 
 
 # Configure logging
@@ -58,7 +73,7 @@ class ConversationEvaluator:
         self,
         resource_id: str,
         evaluations: List[QuestionEvaluation],
-        valid_labels: List[str] = None,
+        valid_labels: Optional[List[str]] = None,
     ):
         """
         Initializes the ConversationEvaluator.
@@ -66,7 +81,8 @@ class ConversationEvaluator:
         Args:
             resource_id (str): Identifier for the resource being evaluated.
             evaluations (List[QuestionEvaluation]): List of individual question evaluations.
-            valid_labels (List[str]): List of valid labels for metric calculation (e.g., ['yes', 'no', 'n/a']).
+            valid_labels (List[str]): List of valid labels for metric calculation
+                (e.g., ['yes', 'no', 'n/a']).
         """
         self.resource_id = resource_id
         self.evaluations = evaluations
@@ -83,7 +99,8 @@ class ConversationEvaluator:
         Computes overall metrics for the conversation.
 
         Returns:
-            Dict[str, Any]: Dictionary containing accuracy, precision, recall, f1 score, and cohen's kappa.
+            Dict[str, Any]: Dictionary containing accuracy, precision, recall,
+                f1 score, and cohen's kappa.
         """
         y_true = [str(e.golden_answer).lower() for e in self.evaluations]
         y_pred = [str(e.predicted_answer).lower() for e in self.evaluations]
@@ -130,7 +147,8 @@ class EvaluationReporter:
         Initializes the EvaluationReporter.
 
         Args:
-            all_evaluations (Dict[str, List[QuestionEvaluation]]): Map of resource ID to its evaluations.
+            all_evaluations (Dict[str, List[QuestionEvaluation]]): Map of resource ID
+                to its evaluations.
         """
         self.all_evaluations = all_evaluations
 
@@ -179,7 +197,9 @@ class EvaluationReporter:
 
         return pd.DataFrame(rows)
 
-    def get_confusion_matrix(self, valid_labels: List[str] = None) -> pd.DataFrame:
+    def get_confusion_matrix(
+        self, valid_labels: Optional[List[str]] = None
+    ) -> pd.DataFrame:
         """
         Generates a confusion matrix for all evaluations.
 
@@ -200,25 +220,30 @@ class EvaluationReporter:
         cm = confusion_matrix(y_true, y_pred, labels=labels)
         return pd.DataFrame(cm, index=labels, columns=labels)
 
-    def print_report(self):
-        """Prints a formatted report to the console."""
-        summary_df = self.get_summary_dataframe()
-        question_df = self.get_question_level_metrics()
-
-        print("\n=== EVALUATION REPORT SUMMARY ===")
-        print(tabulate(summary_df, headers="keys", tablefmt="pretty", showindex=False))
-
-        print("\n=== PERFORMANCE BY QUESTION ===")
-        print(tabulate(question_df, headers="keys", tablefmt="pretty", showindex=False))
-
-        print("\n=== CONFUSION MATRIX ===")
-        cm_df = self.get_confusion_matrix()
-        print(tabulate(cm_df, headers="keys", tablefmt="pretty"))
+    def format_report(self) -> str:
+        """Formats the evaluation summary, per-question table, and confusion matrix."""
+        summary_df: Any = self.get_summary_dataframe()
+        question_df: Any = self.get_question_level_metrics()
+        cm_df: Any = self.get_confusion_matrix()
 
         overall_accuracy = summary_df["accuracy"].mean()
         overall_kappa = summary_df["cohens_kappa"].mean()
-        print(f"\nOverall Mean Accuracy: {overall_accuracy:.2%}")
-        print(f"Overall Mean Cohen's Kappa: {overall_kappa:.2f}")
+
+        sections = [
+            "\n=== EVALUATION REPORT SUMMARY ===",
+            tabulate(summary_df, headers="keys", tablefmt="pretty", showindex=False),
+            "\n=== PERFORMANCE BY QUESTION ===",
+            tabulate(question_df, headers="keys", tablefmt="pretty", showindex=False),
+            "\n=== CONFUSION MATRIX ===",
+            tabulate(cm_df, headers="keys", tablefmt="pretty"),
+            f"\nOverall Mean Accuracy: {overall_accuracy:.2%}",
+            f"Overall Mean Cohen's Kappa: {overall_kappa:.2f}",
+        ]
+        return "\n".join(sections)
+
+    def print_report(self):
+        """Prints a formatted report to the console."""
+        print(self.format_report())
 
 
 def run_automated_evaluation(

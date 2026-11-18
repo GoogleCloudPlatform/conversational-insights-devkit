@@ -21,6 +21,7 @@ handling authentication and client setup.
 
 import enum
 from typing import List, Optional, Union
+from google.api_core.exceptions import GoogleAPIError
 from google.cloud.storage import Client #type: ignore
 
 from cxidk.core import base
@@ -29,6 +30,7 @@ class ContentType(enum.StrEnum):
     """Enum for supported content types."""
     TEXT = "text/plain"
     WAV = "audio/wav"
+    JSON = "application/json"
 
 class Gcs:
     """A wrapper for Google Cloud Storage (GCS) operations.
@@ -67,6 +69,7 @@ class Gcs:
         self.project_id = project_id
         self.client = Client(
             project=self.project_id,
+            credentials=self.auth.creds,
             client_options=self.config.set_storage_endpoint(),
         )
 
@@ -90,6 +93,21 @@ class Gcs:
         if content_type == ContentType.WAV:
             return blob.download_as_bytes()
         return blob.download_as_string().decode("utf-8")
+
+    def bucket_exists(self) -> bool:
+        """Reports whether the configured bucket exists and is reachable.
+
+        Used as a preflight check so that a long-running export fails
+        immediately on a missing or inaccessible bucket rather than after all
+        the data has been gathered.
+
+        Returns:
+            True if the bucket exists and the caller can see it.
+        """
+        try:
+            return self.client.lookup_bucket(self.bucket_name) is not None
+        except GoogleAPIError:
+            return False
 
     def list_bucket(self) -> List[str]:
         """Lists blob names in the bucket.

@@ -1,0 +1,4 @@
+functions-framework>=3.8.0,<4.0.0
+cloudevents>=1.11.0,<2.0.0
+# Install cxidk from Artifact Registry Python repository or a bundled wheel:
+cxidk>=2.0.0

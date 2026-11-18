@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CES Demo Studio</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/lint.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-dark.min.css">
-    
-    <!-- Link to our newly extracted CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -41,10 +35,10 @@
                 <div id="form-scroll-area">
                     <form id="projectForm">
                         <details class="form-accordion" open><summary>Project Details</summary><div class="accordion-content form-grid">
-                            <div><label for="display_name">Display Name (Unique) <span style="color:red">*</span></label><input type="text" id="display_name" required><div class="validation-message"></div></div>
-                            <div><label for="project_id">Project ID <span style="color:red">*</span></label><input type="text" id="project_id" required><div class="validation-message"></div></div>
-                            <div><label for="project_number">Project Number <span style="color:red">*</span></label><input type="text" id="project_number" required><div class="validation-message"></div></div>
-                            <div><label for="location">Location <span style="color:red">*</span></label><select id="location" required></select></div>
+                            <div><label for="display_name">Display Name (Unique) <span class="required-mark">*</span></label><input type="text" id="display_name" required><div class="validation-message"></div></div>
+                            <div><label for="project_id">Project ID <span class="required-mark">*</span></label><input type="text" id="project_id" required><div class="validation-message"></div></div>
+                            <div><label for="project_number">Project Number <span class="required-mark">*</span></label><input type="text" id="project_number" required><div class="validation-message"></div></div>
+                            <div><label for="location">Location <span class="required-mark">*</span></label><select id="location" required></select></div>
                             <div class="form-grid-full">
                                 <label>Environments</label>
                                 <div class="checkbox-group">
@@ -54,24 +48,24 @@
                             </div>
                         </div></details>
                         <details class="form-accordion" open><summary>Cloud Storage Buckets</summary><div class="accordion-content">
-                            <div style="margin-bottom: 1rem;"><label for="buckets_audios">Audio Bucket Name <span style="color:red">*</span></label><input type="text" id="buckets_audios" required></div>
-                            <div style="margin-bottom: 1rem;"><label for="buckets_transcripts">Transcript Bucket Name <span style="color:red">*</span></label><input type="text" id="buckets_transcripts" required></div>
-                            <div><label for="buckets_metadata">Metadata Bucket Name <span style="color:red">*</span></label><input type="text" id="buckets_metadata" required></div>
+                            <div class="field-spaced"><label for="buckets_audios">Audio Bucket Name <span class="required-mark">*</span></label><input type="text" id="buckets_audios" required></div>
+                            <div class="field-spaced"><label for="buckets_transcripts">Transcript Bucket Name <span class="required-mark">*</span></label><input type="text" id="buckets_transcripts" required></div>
+                            <div><label for="buckets_metadata">Metadata Bucket Name <span class="required-mark">*</span></label><input type="text" id="buckets_metadata" required></div>
                         </div></details>
                         <details class="form-accordion"><summary>Conversations to Generate</summary><div class="accordion-content"><h3>Max Conversations Per Run</h3><div class="form-grid">
-                            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="max_conversations_per_run_audio">Audio</label></div><div class="slider-container" data-target-id="max_conversations_per_run_audio" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
-                            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="max_conversations_per_run_chat">Chat</label></div><div class="slider-container" data-target-id="max_conversations_per_run_chat" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
-                            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="max_conversations_per_run_agentic">Agentic</label></div><div class="slider-container" data-target-id="max_conversations_per_run_agentic" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
+                            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="max_conversations_per_run_audio">Audio</label></div><div class="slider-container is-hidden" data-target-id="max_conversations_per_run_audio" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
+                            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="max_conversations_per_run_chat">Chat</label></div><div class="slider-container is-hidden" data-target-id="max_conversations_per_run_chat" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
+                            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="max_conversations_per_run_agentic">Agentic</label></div><div class="slider-container is-hidden" data-target-id="max_conversations_per_run_agentic" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
                         </div></div></details>
-                        <details class="form-accordion"><summary>Virtual Agents (optional)</summary><div class="accordion-content"><div id="sidebar_virtual_agents_container"></div><button type="button" class="btn btn-secondary" onclick="addVirtualAgentFields('sidebar_virtual_agents_container', '')">Add Virtual Agent</button></div></details>
+                        <details class="form-accordion"><summary>Virtual Agents (optional)</summary><div class="accordion-content"><div id="sidebar_virtual_agents_container"></div><button type="button" class="btn btn-secondary" data-add-va-target="sidebar_virtual_agents_container" data-add-va-prefix="">Add Virtual Agent</button></div></details>
                         <details class="form-accordion"><summary>Generation Profile (optional)</summary><div class="accordion-content"><h3>Base Settings</h3><div class="form-grid"><div class="form-grid-full"><label for="gen_theme">Theme</label><select id="gen_theme"><option value="Telecommunications">Telecommunications</option><option value="Entertainment">Entertainment</option><option value="Retail">Retail</option><option value="Healthcare">Healthcare</option></select></div><div class="form-grid-full"><label for="gen_company_name">Company Name</label><input type="text" id="gen_company_name"></div><div class="form-grid-full"><label for="gen_language">Language</label><select id="gen_language"><option value="en-US">en-US</option><option value="de-DE">de-DE</option><option value="it-IT">it-IT</option><option value="pt-BR">pt-BR</option><option value="es-ES">es-ES</option><option value="fr-FR">fr-FR</option></select></div><div class="form-grid-full"><label for="gen_topics">Topics</label><div class="multi-text-input" data-target-id="gen_topics"><input type="text" placeholder="Add & press Enter..."></div></div><div><label for="gen_model">Model</label><select id="gen_model"><option value="gemini-2.5-pro">gemini-2.5-pro</option><option value="gemini-2.5-flash">gemini-2.5-flash</option></select></div><div class="form-grid-full"><label>Temperature</label><div class="slider-container" data-target-id="gen_temperature" data-min="0" data-max="2" data-step="0.05" data-start="0.5" data-end="0.8"></div></div><div class="form-grid-full"><label>TopK</label><div class="slider-container" data-target-id="gen_topk" data-min="1" data-max="40" data-step="1" data-start="30" data-end="40"></div></div><div class="form-grid-full"><label>TopP</label><div class="slider-container" data-target-id="gen_topp" data-min="0" data-max="1" data-step="0.05" data-start="0.9" data-end="1.0"></div></div><div class="form-grid-full"><label>Sentiment Journeys</label><div class="checkbox-group-vertical" data-target-id="gen_sentiment_journeys"><label><input type="checkbox" name="gen_sentiment_journeys" value="High to Low">High to Low</label><label><input type="checkbox" name="gen_sentiment_journeys" value="Low to High">Low to High</label><label><input type="checkbox" name="gen_sentiment_journeys" value="Neutral to Low">Neutral to Low</label><label><input type="checkbox" name="gen_sentiment_journeys" value="Neutral to High">Neutral to High</label><label><input type="checkbox" name="gen_sentiment_journeys" value="High to Neutral">High to Neutral</label><label><input type="checkbox" name="gen_sentiment_journeys" value="Low to Neutral">Low to Neutral</label><label><input type="checkbox" name="gen_sentiment_journeys" value="Stable with no change">Stable with no change</label></div></div></div><h3>Probabilities</h3><div class="form-grid"><div class="form-grid-full"><label>Bad Sentiment</label><div class="slider-container" data-target-id="probabilities_bad_sentiment" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div><div class="form-grid-full"><label>Long Conversation</label><div class="slider-container" data-target-id="probabilities_long_conversation" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div><div class="form-grid-full"><label>Bad Performance</label><div class="slider-container" data-target-id="probabilities_bad_performance" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div></div><div class="form-grid-full"><label>Prompt Hint</label><div class="multi-text-input" data-target-id="gen_prompt_hint"><input type="text" placeholder="Add & press Enter..."></div></div></div></details>
                     </form>
                 </div>
-                <div class="sidebar-footer"><button type="button" id="addProjectBtn" class="btn btn-primary" style="width: 100%;">Add Configuration</button></div>
+                <div class="sidebar-footer"><button type="button" id="addProjectBtn" class="btn btn-primary btn-block">Add Configuration</button></div>
             </aside>
-            
+
             <main class="main-content">
-                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem; gap: 1.5rem;">
+                <div class="main-toolbar">
                     <button id="addNewProjectBtn" class="btn btn-primary">New Configuration</button>
                     <button id="viewRawJsonBtn" class="btn btn-secondary">View Raw Projects JSON</button>
                     <div class="dark-mode-container">
@@ -91,7 +85,7 @@
             <aside class="right-panel">
                 <div class="card">
                     <h3>Required Permissions</h3>
-                    <p>For the tool to see and manage configurations for other GCP projects, this service account needs the following roles on each target project:</p>
+                    <p>For the pipeline runners to generate synthetic conversations on allowlisted target GCP projects, grant the runner service account:</p>
                     <code>insights-pipeline-producer@insights-pipeline-producer.iam.gserviceaccount.com</code>
                     <ul>
                         <li>Contact Center AI Insights Admin</li>
@@ -105,7 +99,7 @@
                     <div id="project-summary-container"><ul><li><strong>Total Demo Projects:</strong> 0</li></ul></div>
                 </div>
                 <div class="card">
-                    <div class="card-header" style="padding: 0; margin-bottom: 1rem;">
+                    <div class="card-header card-header-flush">
                         <h3>Conversation Statistics</h3>
                         <button id="refresh-stats-btn" class="btn btn-icon" aria-label="Refresh Statistics">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
@@ -114,7 +108,7 @@
                     <div id="conversation-details-container"><p>Loading stats...</p></div>
                     <div id="conversation-summary-container"></div>
                 </div>
-                
+
                 <div class="card">
                     <h3>Links</h3>
                     <ul>
@@ -129,15 +123,15 @@
             <h3>Agent Assist Features Coming Soon</h3>
         </footer>
     </div>
-    
+
     <div id="json-modal" class="modal"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-header"><h3>Raw Projects JSON</h3><div class="actions"><button id="copyJsonBtn" class="btn btn-primary">Copy</button><button id="downloadJsonBtn" class="btn btn-secondary">Download</button></div><button class="modal-close" aria-label="close">&times;</button></header><section class="modal-card-body"><div id="json-viewer-container"></div></section></div></div>
-    
+
     <div id="edit-project-modal" class="modal"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-header"><h3 id="edit-project-title">Edit Configuration</h3><button class="modal-close" aria-label="close">&times;</button></header><section class="modal-card-body"><div id="modal-form-scroll-area"><form id="editProjectForm"><input type="hidden" id="edit-project-index"><input type="hidden" id="edit-original-project-id"><input type="hidden" id="edit-original-display-name">
     <details class="form-accordion" open><summary>Project Details</summary><div class="accordion-content form-grid">
-        <div><label for="edit-display_name">Display Name (Unique) <span style="color:red">*</span></label><input type="text" id="edit-display_name" required><div class="validation-message"></div></div>
-        <div><label for="edit-project_id">Project ID <span style="color:red">*</span></label><input type="text" id="edit-project_id" required><div class="validation-message"></div></div>
-        <div><label for="edit-project_number">Project Number <span style="color:red">*</span></label><input type="text" id="edit-project_number" required><div class="validation-message"></div></div>
-        <div><label for="edit-location">Location <span style="color:red">*</span></label><select id="edit-location" required></select></div>
+        <div><label for="edit-display_name">Display Name (Unique) <span class="required-mark">*</span></label><input type="text" id="edit-display_name" required><div class="validation-message"></div></div>
+        <div><label for="edit-project_id">Project ID <span class="required-mark">*</span></label><input type="text" id="edit-project_id" required><div class="validation-message"></div></div>
+        <div><label for="edit-project_number">Project Number <span class="required-mark">*</span></label><input type="text" id="edit-project_number" required><div class="validation-message"></div></div>
+        <div><label for="edit-location">Location <span class="required-mark">*</span></label><select id="edit-location" required></select></div>
         <div class="form-grid-full">
             <label>Environments</label>
             <div class="checkbox-group">
@@ -146,23 +140,23 @@
             </div>
         </div>
     </div></details><details class="form-accordion" open><summary>Cloud Storage Buckets</summary><div class="accordion-content">
-        <div style="margin-bottom: 1rem;"><label for="edit-buckets_audios">Audio Bucket Name <span style="color:red">*</span></label><input type="text" id="edit-buckets_audios" required></div>
-        <div style="margin-bottom: 1rem;"><label for="edit-buckets_transcripts">Transcript Bucket Name <span style="color:red">*</span></label><input type="text" id="edit-buckets_transcripts" required></div>
-        <div><label for="edit-buckets_metadata">Metadata Bucket Name <span style="color:red">*</span></label><input type="text" id="edit-buckets_metadata" required></div>
+        <div class="field-spaced"><label for="edit-buckets_audios">Audio Bucket Name <span class="required-mark">*</span></label><input type="text" id="edit-buckets_audios" required></div>
+        <div class="field-spaced"><label for="edit-buckets_transcripts">Transcript Bucket Name <span class="required-mark">*</span></label><input type="text" id="edit-buckets_transcripts" required></div>
+        <div><label for="edit-buckets_metadata">Metadata Bucket Name <span class="required-mark">*</span></label><input type="text" id="edit-buckets_metadata" required></div>
     </div></details>
         <details class="form-accordion"><summary>Conversations to Generate</summary><div class="accordion-content"><h3>Max Conversations Per Run</h3><div class="form-grid">
-            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="edit-max_conversations_per_run_audio">Audio</label></div><div class="slider-container" data-target-id="edit-max_conversations_per_run_audio" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
-            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="edit-max_conversations_per_run_chat">Chat</label></div><div class="slider-container" data-target-id="edit-max_conversations_per_run_chat" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
-            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="edit-max_conversations_per_run_agentic">Agentic</label></div><div class="slider-container" data-target-id="edit-max_conversations_per_run_agentic" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
+            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="edit-max_conversations_per_run_audio">Audio</label></div><div class="slider-container is-hidden" data-target-id="edit-max_conversations_per_run_audio" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
+            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="edit-max_conversations_per_run_chat">Chat</label></div><div class="slider-container is-hidden" data-target-id="edit-max_conversations_per_run_chat" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
+            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="edit-max_conversations_per_run_agentic">Agentic</label></div><div class="slider-container is-hidden" data-target-id="edit-max_conversations_per_run_agentic" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
         </div></div></details>
-        <details class="form-accordion" open><summary>Virtual Agents (optional)</summary><div class="accordion-content"><div id="edit_virtual_agents_container"></div><button type="button" class="btn btn-secondary" onclick="addVirtualAgentFields('edit_virtual_agents_container', 'edit-')">Add Virtual Agent</button></div></details><details class="form-accordion"><summary>Generation Profile (optional)</summary><div class="accordion-content"><h3>Base Settings</h3><div class="form-grid"><div class="form-grid-full"><label for="edit-gen_theme">Theme</label><select id="edit-gen_theme"><option value="Telecommunications">Telecommunications</option><option value="Entertainment">Entertainment</option><option value="Retail">Retail</option><option value="Healthcare">Healthcare</option></select></div><div class="form-grid-full"><label for="edit-gen_company_name">Company Name</label><input type="text" id="edit-gen_company_name"></div><div class="form-grid-full"><label for="edit-gen_language">Language</label><select id="edit-gen_language"><option value="en-US">en-US</option><option value="de-DE">de-DE</option><option value="it-IT">it-IT</option><option value="pt-BR">pt-BR</option><option value="es-ES">es-ES</option><option value="fr-FR">fr-FR</option></select></div><div class="form-grid-full"><label for="edit-gen_topics">Topics</label><div class="multi-text-input" data-target-id="edit-gen_topics"><input type="text" placeholder="Add & press Enter..."></div></div><div><label for="edit-gen_model">Model</label><select id="edit-gen_model"><option value="gemini-2.5-pro">gemini-2.5-pro</option><option value="gemini-2.5-flash">gemini-2.5-flash</option></select></div><div class="form-grid-full"><label>Temperature</label><div class="slider-container" data-target-id="edit-gen_temperature" data-min="0" data-max="2" data-step="0.05" data-start="0.5" data-end="0.8"></div></div><div class="form-grid-full"><label>TopK</label><div class="slider-container" data-target-id="edit-gen_topk" data-min="1" data-max="40" data-step="1" data-start="30" data-end="40"></div></div><div class="form-grid-full"><label>TopP</label><div class="slider-container" data-target-id="edit-gen_topp" data-min="0" data-max="1" data-step="0.05" data-start="0.9" data-end="1.0"></div></div><div class="form-grid-full"><label>Sentiment Journeys</label><div class="checkbox-group-vertical" data-target-id="edit-gen_sentiment_journeys"><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="High to Low">High to Low</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Low to High">Low to High</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Neutral to Low">Neutral to Low</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Neutral to High">Neutral to High</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="High to Neutral">High to Neutral</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Low to Neutral">Low to Neutral</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Stable with no change">Stable with no change</label></div></div></div><h3>Probabilities</h3><div class="form-grid"><div class="form-grid-full"><label>Bad Sentiment</label><div class="slider-container" data-target-id="edit-probabilities_bad_sentiment" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div><div class="form-grid-full"><label>Long Conversation</label><div class="slider-container" data-target-id="edit-probabilities_long_conversation" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div><div class="form-grid-full"><label>Bad Performance</label><div class="slider-container" data-target-id="edit-probabilities_bad_performance" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div></div><div class="form-grid-full"><label>Prompt Hint</label><div class="multi-text-input" data-target-id="edit-gen_prompt_hint"><input type="text" placeholder="Add & press Enter..."></div></div></div></details>
+        <details class="form-accordion" open><summary>Virtual Agents (optional)</summary><div class="accordion-content"><div id="edit_virtual_agents_container"></div><button type="button" class="btn btn-secondary" data-add-va-target="edit_virtual_agents_container" data-add-va-prefix="edit-">Add Virtual Agent</button></div></details><details class="form-accordion"><summary>Generation Profile (optional)</summary><div class="accordion-content"><h3>Base Settings</h3><div class="form-grid"><div class="form-grid-full"><label for="edit-gen_theme">Theme</label><select id="edit-gen_theme"><option value="Telecommunications">Telecommunications</option><option value="Entertainment">Entertainment</option><option value="Retail">Retail</option><option value="Healthcare">Healthcare</option></select></div><div class="form-grid-full"><label for="edit-gen_company_name">Company Name</label><input type="text" id="edit-gen_company_name"></div><div class="form-grid-full"><label for="edit-gen_language">Language</label><select id="edit-gen_language"><option value="en-US">en-US</option><option value="de-DE">de-DE</option><option value="it-IT">it-IT</option><option value="pt-BR">pt-BR</option><option value="es-ES">es-ES</option><option value="fr-FR">fr-FR</option></select></div><div class="form-grid-full"><label for="edit-gen_topics">Topics</label><div class="multi-text-input" data-target-id="edit-gen_topics"><input type="text" placeholder="Add & press Enter..."></div></div><div><label for="edit-gen_model">Model</label><select id="edit-gen_model"><option value="gemini-2.5-pro">gemini-2.5-pro</option><option value="gemini-2.5-flash">gemini-2.5-flash</option></select></div><div class="form-grid-full"><label>Temperature</label><div class="slider-container" data-target-id="edit-gen_temperature" data-min="0" data-max="2" data-step="0.05" data-start="0.5" data-end="0.8"></div></div><div class="form-grid-full"><label>TopK</label><div class="slider-container" data-target-id="edit-gen_topk" data-min="1" data-max="40" data-step="1" data-start="30" data-end="40"></div></div><div class="form-grid-full"><label>TopP</label><div class="slider-container" data-target-id="edit-gen_topp" data-min="0" data-max="1" data-step="0.05" data-start="0.9" data-end="1.0"></div></div><div class="form-grid-full"><label>Sentiment Journeys</label><div class="checkbox-group-vertical" data-target-id="edit-gen_sentiment_journeys"><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="High to Low">High to Low</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Low to High">Low to High</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Neutral to Low">Neutral to Low</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Neutral to High">Neutral to High</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="High to Neutral">High to Neutral</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Low to Neutral">Low to Neutral</label><label><input type="checkbox" name="edit-gen_sentiment_journeys" value="Stable with no change">Stable with no change</label></div></div></div><h3>Probabilities</h3><div class="form-grid"><div class="form-grid-full"><label>Bad Sentiment</label><div class="slider-container" data-target-id="edit-probabilities_bad_sentiment" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div><div class="form-grid-full"><label>Long Conversation</label><div class="slider-container" data-target-id="edit-probabilities_long_conversation" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div><div class="form-grid-full"><label>Bad Performance</label><div class="slider-container" data-target-id="edit-probabilities_bad_performance" data-min="0" data-max="1" data-step="0.05" data-start="0.2" data-end="0.8"></div></div></div><div class="form-grid-full"><label>Prompt Hint</label><div class="multi-text-input" data-target-id="edit-gen_prompt_hint"><input type="text" placeholder="Add & press Enter..."></div></div></div></details>
     </form></div></section><footer class="modal-card-footer"><button id="cancelEditProjectBtn" class="btn btn-secondary">Cancel</button><button id="saveEditProjectBtn" class="btn btn-success">Save Changes</button></footer></div></div>
-    
+
     <div id="add-project-modal" class="modal"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-header"><h3>Add New Configuration</h3><button class="modal-close" aria-label="close">&times;</button></header><section class="modal-card-body"><div id="modal-form-scroll-area"><form id="addProjectForm"><details class="form-accordion" open><summary>Project Details</summary><div class="accordion-content form-grid">
-        <div><label for="add-display_name">Display Name (Unique) <span style="color:red">*</span></label><input type="text" id="add-display_name" required><div class="validation-message"></div></div>
-        <div><label for="add-project_id">Project ID <span style="color:red">*</span></label><input type="text" id="add-project_id" required><div class="validation-message"></div></div>
-        <div><label for="add-project_number">Project Number <span style="color:red">*</span></label><input type="text" id="add-project_number" required><div class="validation-message"></div></div>
-        <div><label for="add-location">Location <span style="color:red">*</span></label><select id="add-location" required></select></div>
+        <div><label for="add-display_name">Display Name (Unique) <span class="required-mark">*</span></label><input type="text" id="add-display_name" required><div class="validation-message"></div></div>
+        <div><label for="add-project_id">Project ID <span class="required-mark">*</span></label><input type="text" id="add-project_id" required><div class="validation-message"></div></div>
+        <div><label for="add-project_number">Project Number <span class="required-mark">*</span></label><input type="text" id="add-project_number" required><div class="validation-message"></div></div>
+        <div><label for="add-location">Location <span class="required-mark">*</span></label><select id="add-location" required></select></div>
         <div class="form-grid-full">
             <label>Environments</label>
             <div class="checkbox-group">
@@ -171,26 +165,54 @@
             </div>
         </div>
     </div></details><details class="form-accordion" open><summary>Buckets</summary><div class="accordion-content">
-        <div style="margin-bottom: 1rem;"><label for="add-buckets_audios">Audio Bucket Name <span style="color:red">*</span></label><input type="text" id="add-buckets_audios" required></div>
-        <div style="margin-bottom: 1rem;"><label for="add-buckets_transcripts">Transcript Bucket Name <span style="color:red">*</span></label><input type="text" id="add-buckets_transcripts" required></div>
-        <div><label for="add-buckets_metadata">Metadata Bucket Name <span style="color:red">*</span></label><input type="text" id="add-buckets_metadata" required></div>
+        <div class="field-spaced"><label for="add-buckets_audios">Audio Bucket Name <span class="required-mark">*</span></label><input type="text" id="add-buckets_audios" required></div>
+        <div class="field-spaced"><label for="add-buckets_transcripts">Transcript Bucket Name <span class="required-mark">*</span></label><input type="text" id="add-buckets_transcripts" required></div>
+        <div><label for="add-buckets_metadata">Metadata Bucket Name <span class="required-mark">*</span></label><input type="text" id="add-buckets_metadata" required></div>
     </div></details>
         <details class="form-accordion"><summary>Conversations to Generate</summary><div class="accordion-content"><h3>Max Conversations Per Run</h3><div class="form-grid">
-            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="add-max_conversations_per_run_audio">Audio</label></div><div class="slider-container" data-target-id="add-max_conversations_per_run_audio" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
-            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="add-max_conversations_per_run_chat">Chat</label></div><div class="slider-container" data-target-id="add-max_conversations_per_run_chat" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
-            <div class="form-grid-full"><div class="checkbox-group" style="padding:0;margin-bottom:0.5rem;"><label><input type="checkbox" data-controls-slider="add-max_conversations_per_run_agentic">Agentic</label></div><div class="slider-container" data-target-id="add-max_conversations_per_run_agentic" data-min="1" data-max="15" data-step="1" data-start="5" style="display:none;"></div></div>
+            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="add-max_conversations_per_run_audio">Audio</label></div><div class="slider-container is-hidden" data-target-id="add-max_conversations_per_run_audio" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
+            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="add-max_conversations_per_run_chat">Chat</label></div><div class="slider-container is-hidden" data-target-id="add-max_conversations_per_run_chat" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
+            <div class="form-grid-full"><div class="checkbox-group checkbox-group-tight"><label><input type="checkbox" data-controls-slider="add-max_conversations_per_run_agentic">Agentic</label></div><div class="slider-container is-hidden" data-target-id="add-max_conversations_per_run_agentic" data-min="1" data-max="15" data-step="1" data-start="5"></div></div>
         </div></div></details>
-        <details class="form-accordion" open><summary>Virtual Agents (optional)</summary><div class="accordion-content"><div id="modal_virtual_agents_container"></div><button type="button" class="btn btn-secondary" onclick="addVirtualAgentFields('modal_virtual_agents_container', 'add-')">Add Virtual Agent</button></div></details><details class="form-accordion"><summary>Generation Profile (optional)</summary><div class="accordion-content"><h3>Base Settings</h3><div class="form-grid"><div class="form-grid-full"><label for="add-gen_theme">Theme</label><select id="add-gen_theme"><option value="Telecommunications">Telecommunications</option><option value="Entertainment">Entertainment</option><option value="Retail">Retail</option><option value="Healthcare">Healthcare</option></select></div><div class="form-grid-full"><label for="add-gen_company_name">Company Name</label><input type="text" id="add-gen_company_name"></div><div class="form-grid-full"><label for="add-gen_language">Language</label><select id="add-gen_language"><option value="en-US">en-US</option><option value="de-DE">de-DE</option><option value="it-IT">it-IT</option><option value="pt-BR">pt-BR</option><option value="es-ES">es-ES</option><option value="fr-FR">fr-FR</option></select></div><div class="form-grid-full"><label for="add-gen_topics">Topics</label><div class="multi-text-input" data-target-id="add-gen_topics"><input type="text" placeholder="Add & press Enter..."></div></div><div><label for="add-gen_model">Model</label><select id="add-gen_model"><option value="gemini-2.5-pro">gemini-2.5-pro</option><option value="gemini-2.5-flash">gemini-2.5-flash</option></select></div><div class="form-grid-full"><label>Temperature</label><div class="slider-container" data-target-id="add-gen_temperature" data-min="0" data-max="2" data-step="0.05" data-start="0.5" data-end="0.8"></div></div><div class="form-grid-full"><label>TopK</label><div class="slider-container" data-target-id="add-gen_topk" data-min="1" data-max="40" data-step="1" data-start="30" data-end="40"></div></div><div class="form-grid-full"><label>TopP</label><div class="slider-container" data-target-id="add-gen_topp" data-min="0" data-max="1" data-step="0.05" data-start="0.9" data-end="1.0"></div></div><div class="form-grid-full"><label>Prompt Hint</label><div class="multi-text-input" data-target-id="add-gen_prompt_hint"><input type="text" placeholder="Add & press Enter..."></div></div></div></details>
+        <details class="form-accordion" open><summary>Virtual Agents (optional)</summary><div class="accordion-content"><div id="modal_virtual_agents_container"></div><button type="button" class="btn btn-secondary" data-add-va-target="modal_virtual_agents_container" data-add-va-prefix="add-">Add Virtual Agent</button></div></details><details class="form-accordion"><summary>Generation Profile (optional)</summary><div class="accordion-content"><h3>Base Settings</h3><div class="form-grid"><div class="form-grid-full"><label for="add-gen_theme">Theme</label><select id="add-gen_theme"><option value="Telecommunications">Telecommunications</option><option value="Entertainment">Entertainment</option><option value="Retail">Retail</option><option value="Healthcare">Healthcare</option></select></div><div class="form-grid-full"><label for="add-gen_company_name">Company Name</label><input type="text" id="add-gen_company_name"></div><div class="form-grid-full"><label for="add-gen_language">Language</label><select id="add-gen_language"><option value="en-US">en-US</option><option value="de-DE">de-DE</option><option value="it-IT">it-IT</option><option value="pt-BR">pt-BR</option><option value="es-ES">es-ES</option><option value="fr-FR">fr-FR</option></select></div><div class="form-grid-full"><label for="add-gen_topics">Topics</label><div class="multi-text-input" data-target-id="add-gen_topics"><input type="text" placeholder="Add & press Enter..."></div></div><div><label for="add-gen_model">Model</label><select id="add-gen_model"><option value="gemini-2.5-pro">gemini-2.5-pro</option><option value="gemini-2.5-flash">gemini-2.5-flash</option></select></div><div class="form-grid-full"><label>Temperature</label><div class="slider-container" data-target-id="add-gen_temperature" data-min="0" data-max="2" data-step="0.05" data-start="0.5" data-end="0.8"></div></div><div class="form-grid-full"><label>TopK</label><div class="slider-container" data-target-id="add-gen_topk" data-min="1" data-max="40" data-step="1" data-start="30" data-end="40"></div></div><div class="form-grid-full"><label>TopP</label><div class="slider-container" data-target-id="add-gen_topp" data-min="0" data-max="1" data-step="0.05" data-start="0.9" data-end="1.0"></div></div><div class="form-grid-full"><label>Prompt Hint</label><div class="multi-text-input" data-target-id="add-gen_prompt_hint"><input type="text" placeholder="Add & press Enter..."></div></div></div></details>
     </form></div></section><footer class="modal-card-footer"><button id="cancelAddProjectBtn" class="btn btn-secondary">Cancel</button><button id="saveNewProjectBtn" class="btn btn-success">Save New Configuration</button></footer></div></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/matchbrackets.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/lint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/json-lint.min.js"></script>
-    <script src="https://unpkg.com/jsonlint@1.6.3/web/jsonlint.js"></script>
+    <div id="api-key-modal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-card modal-card-compact">
+            <header class="modal-card-header">
+                <h3>Authentication Required</h3>
+                <button class="modal-close" aria-label="close">&times;</button>
+            </header>
+            <section class="modal-card-body">
+                <p>Enter the standalone configuration API key to access Demo Studio:</p>
+                <label for="api-key-input">API Key</label>
+                <input type="password" id="api-key-input" autocomplete="off" placeholder="Enter X-API-Key...">
+            </section>
+            <footer class="modal-card-footer">
+                <button type="button" id="cancelApiKeyBtn" class="btn btn-secondary">Cancel</button>
+                <button type="button" id="submitApiKeyBtn" class="btn btn-primary">Authenticate</button>
+            </footer>
+        </div>
+    </div>
 
-    <!-- Link to our newly extracted JS file -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-card modal-card-compact">
+            <header class="modal-card-header">
+                <h3 id="confirm-modal-title">Confirm Action</h3>
+                <button class="modal-close" aria-label="close">&times;</button>
+            </header>
+            <section class="modal-card-body">
+                <p id="confirm-modal-message"></p>
+            </section>
+            <footer class="modal-card-footer">
+                <button type="button" id="cancelConfirmBtn" class="btn btn-secondary">Cancel</button>
+                <button type="button" id="acceptConfirmBtn" class="btn btn-primary">Continue</button>
+            </footer>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>

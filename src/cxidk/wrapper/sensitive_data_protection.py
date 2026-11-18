@@ -65,7 +65,10 @@ class DLP:
         self.project_id = project_id
         self.location = location
 
-        self.client = dlp_v2.DlpServiceClient()
+        self.client = dlp_v2.DlpServiceClient(
+            credentials=self.auth.creds,
+            client_options=self.config.set_dlp_endpoint(),
+        )
 
         self.parent = f"projects/{self.project_id}/locations/{self.location}"
 

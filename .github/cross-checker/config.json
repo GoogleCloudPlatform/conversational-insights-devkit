@@ -1,0 +1,13 @@
+[
+  {
+    "include": [
+      "**/*.py"
+    ],
+    "exclude": [
+      "**/*.md",
+      "**/*.txt",
+      "**/__init__.py"
+    ],
+    "license": ".github/HEADER_TEMPLATE.txt"
+  }
+]

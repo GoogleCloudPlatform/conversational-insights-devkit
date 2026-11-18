@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Taxonomy Standardization Utility.
 
@@ -12,9 +25,12 @@ import logging
 import sys
 import time
 import uuid
-import pandas as pd
 from typing import Optional
+
+import pandas as pd
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+
 from cxidk.workflow.insight_refinements.taxonomy_utils import TaxonomyStandardizer
 from cxidk.workflow.insight_refinements.schemas.input import (
     BatchAnalysisInput,
@@ -24,47 +40,60 @@ from cxidk.workflow.insight_refinements.schemas.input import (
     LLMConfig,
     TopicRefinementConfig,
 )
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
+
 
 class StandardizerSettings(BaseSettings):
     """Settings for the Taxonomy Standardizer."""
     gcp_project_id: str
     gcp_project_number: str
     gcp_location_id: str = "us-central1"
-    
+
     bq_project_id: Optional[str] = None
     bq_dataset_id: str
     bq_l2_taxonomy_table: str = "l2_taxonomy_results"
-    
+
     llm_model_name: str = "gemini-3.1-flash-lite-preview"
     llm_location_id: str = "global"
     ccai_issue_model_id: str
 
+
 def parse_args():
+    """Parses command-line arguments for the standardization utility.
+
+    Returns:
+        argparse.Namespace: The parsed arguments, containing the ``output``
+        path used to save the standardized taxonomy mapping.
+    """
     parser = argparse.ArgumentParser(description="Standardize exploratory L2 taxonomy.")
     parser.add_argument(
-        "--output", 
+        "--output",
         default="approved_taxonomy.json",
         help="Path to save the standardized taxonomy mapping JSON."
     )
     return parser.parse_args()
 
+
 def main():
+    """Runs the taxonomy standardization workflow.
+
+    Loads settings from the environment, fetches the unique raw L2 categories
+    from BigQuery, asks Gemini to cluster them into a standardized taxonomy,
+    writes the mapping to the requested JSON file and records an audit entry in
+    BigQuery. Exits with status 1 on any failure.
+    """
+    load_dotenv()
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     args = parse_args()
-    
+
     try:
         settings = StandardizerSettings()
+    # pylint: disable-next=broad-exception-caught  # CLI boundary: any config error must exit(1)
     except Exception as e:
-        logger.error(f"Missing configuration: {e}")
+        logger.error("Missing configuration: %s", e)
         sys.exit(1)
 
     # Construct the internal config object
@@ -94,32 +123,35 @@ def main():
     )
 
     standardizer = TaxonomyStandardizer(config)
-    
+
     # 1. Fetch unique categories from BQ
     try:
         unique_cats = standardizer.fetch_unique_categories()
         if not unique_cats:
             logger.info("No unique categories found in BigQuery. Exiting.")
             return
-        
-        logger.info(f"Found {len(unique_cats)} unique raw categories.")
+
+        logger.info("Found %d unique raw categories.", len(unique_cats))
+    # pylint: disable-next=broad-exception-caught  # CLI boundary: any BQ error must exit(1)
     except Exception as e:
-        logger.error(f"Failed to fetch categories: {e}")
+        logger.error("Failed to fetch categories: %s", e)
         sys.exit(1)
 
     # 2. Call Gemini for standardization
     try:
         start_time = time.time()
-        mapping_data, input_tokens, output_tokens = standardizer.generate_standardized_mapping(unique_cats)
+        mapping_data, input_tokens, output_tokens = (
+            standardizer.generate_standardized_mapping(unique_cats)
+        )
         latency_ms = (time.time() - start_time) * 1000
-        
+
         # 3. Save to file
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(mapping_data, f, indent=2)
-        
-        logger.info(f"Successfully saved standardized taxonomy to {args.output}")
-        logger.info(f"Master Categories: {mapping_data.get('master_categories', [])}")
-        
+
+        logger.info("Successfully saved standardized taxonomy to %s", args.output)
+        logger.info("Master Categories: %s", mapping_data.get("master_categories", []))
+
         # 4. Write to BigQuery Audit Table
         audit_entry = {
             "run_id": str(uuid.uuid4()),
@@ -132,9 +164,10 @@ def main():
         }
         audit_df = pd.DataFrame([audit_entry])
         standardizer.bq_client.write_audit_log(audit_df)
-        
+
+    # pylint: disable-next=broad-exception-caught  # CLI boundary: any failure is logged and audited
     except Exception as e:
-        logger.error(f"Standardization failed: {e}")
+        logger.error("Standardization failed: %s", e)
         # Log failure if possible
         try:
             fail_entry = {
@@ -147,6 +180,8 @@ def main():
                 "output_tokens": 0
             }
             standardizer.bq_client.write_audit_log(pd.DataFrame([fail_entry]))
+        # Best-effort audit write must never mask the original error.
+        # pylint: disable-next=broad-exception-caught
         except Exception:
             pass
         sys.exit(1)

@@ -16,7 +16,7 @@
 This module provides a wrapper for managing Identity and Access Management (IAM)
 policies and custom roles within a Google Cloud project. It simplifies common
 IAM operations such as getting, setting, and modifying policies, as well as
-creating and listing custom roles by using the `google-cloud-resourcemanager`
+creating and listing custom roles by using the `google-cloud-resource-manager`
 and `google-cloud-iam` client libraries.
 """
 # pylint: disable= no-member,
@@ -71,8 +71,10 @@ class Policy:
 
         self.project_id = project_id
         self.project_name = f"projects/{project_id}"
-        self.client = resourcemanager_v3.ProjectsClient()
-        self.iam_client = iam_admin_v1.IAMClient()
+        self.client = resourcemanager_v3.ProjectsClient(
+            credentials=self.auth.creds
+        )
+        self.iam_client = iam_admin_v1.IAMClient(credentials=self.auth.creds)
 
     def set(self, policy: Dict[str, Any]) -> policy_pb2.Policy:
         """Sets the IAM policy for the project, overwriting any existing policy.

@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for the human_voice runner main.py."""
+"""Unit and confused-deputy security tests for the human_voice runner."""
 
-from unittest.mock import patch
 import datetime
 import json
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from cxidk.workflow.demo_artifacts.runners.human_voice import main
+
 
 def test_file_name_generator():
     """Tests that the file name generator returns the correct format."""
@@ -25,9 +29,12 @@ def test_file_name_generator():
     assert len(file_name) == 18
     assert datetime.datetime.strptime(file_name, "%y%m%d%H%M%S%f")
 
+
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
@@ -49,7 +56,9 @@ def test_runner_no_config(
 
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
@@ -62,8 +71,14 @@ def test_runner_with_valid_config(
     mock_generator,
     mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
-    """Tests the runner with a valid configuration."""
+    """Tests the runner with an allowlisted valid configuration."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project")
+    monkeypatch.setenv(
+        "ALLOWED_BUCKETS",
+        "test-metadata-bucket,test-transcript-bucket,test-audio-bucket",
+    )
     mock_config = {
         "projects": [
             {
@@ -104,7 +119,9 @@ def test_runner_with_valid_config(
 
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
@@ -117,8 +134,14 @@ def test_runner_partially_configured_project(
     _mock_generator,
     _mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that the runner handles partially configured projects."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project-partial")
+    monkeypatch.setenv(
+        "ALLOWED_BUCKETS",
+        "test-metadata-bucket,test-transcript-bucket,test-audio-bucket",
+    )
     mock_config = {
         "projects": [
             {
@@ -129,7 +152,10 @@ def test_runner_partially_configured_project(
                     "transcripts": "test-transcript-bucket",
                     "audios": "test-audio-bucket",
                 },
-                "generation_profile": {"theme": [], "max_conversations_per_run": {"audio": 0}},
+                "generation_profile": {
+                    "theme": [],
+                    "max_conversations_per_run": {"audio": 0},
+                },
                 "environments": ["stg", "prod"],
             }
         ]
@@ -147,7 +173,9 @@ def test_runner_partially_configured_project(
 
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
@@ -160,8 +188,14 @@ def test_runner_audio_generation_exception(
     mock_generator,
     mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that the runner handles exceptions during audio generation."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project-audio-exception")
+    monkeypatch.setenv(
+        "ALLOWED_BUCKETS",
+        "test-metadata-bucket,test-transcript-bucket,test-audio-bucket",
+    )
     mock_config = {
         "projects": [
             {
@@ -191,7 +225,9 @@ def test_runner_audio_generation_exception(
         "customer_satisfaction_rating": 5,
     }
     mock_generator.return_value.create_conversation.return_value = "{}"
-    mock_audio_generator.return_value.single.side_effect = Exception("Audio generation failed")
+    mock_audio_generator.return_value.single.side_effect = Exception(
+        "Audio generation failed"
+    )
 
     result = main.runner(None)
 
@@ -207,7 +243,9 @@ def test_runner_audio_generation_exception(
 
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
@@ -220,8 +258,14 @@ def test_runner_upload_exception(
     mock_generator,
     mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that the runner handles exceptions during file upload."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project-upload-exception")
+    monkeypatch.setenv(
+        "ALLOWED_BUCKETS",
+        "test-metadata-bucket,test-transcript-bucket,test-audio-bucket",
+    )
     mock_config = {
         "projects": [
             {
@@ -267,7 +311,9 @@ def test_runner_upload_exception(
 
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
-@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator"
+)
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
 @patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.random")
@@ -280,12 +326,18 @@ def test_runner_ingestion_exception(
     mock_generator,
     mock_gcs,
     mock_import_config,
+    monkeypatch,
 ):
     """Tests that the runner handles exceptions during ingestion."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project-ingest-err")
+    monkeypatch.setenv(
+        "ALLOWED_BUCKETS",
+        "test-metadata-bucket,test-transcript-bucket,test-audio-bucket",
+    )
     mock_config = {
         "projects": [
             {
-                "project_id": "test-project-ingestion-exception",
+                "project_id": "test-project-ingest-err",
                 "location": "us-central1",
                 "buckets": {
                     "metadata": "test-metadata-bucket",
@@ -321,5 +373,90 @@ def test_runner_ingestion_exception(
         "An unexpected error (%s) occurred during file upload on %s %s",
         mock_ingestion.side_effect,
         "stg",
-        "test-project-ingestion-exception",
+        "test-project-ingest-err",
     )
+
+
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.import_config")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+@patch(
+    "cxidk.workflow.demo_artifacts.runners.human_voice.main.content_generator.Generator"
+)
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.audio.GenerateAudio")
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.insights.Ingestion")
+def test_runner_fails_closed_and_blocks_squatted_buckets(
+    mock_ingestion,
+    mock_audio_generator,
+    mock_generator,
+    mock_gcs,
+    mock_import_config,
+    monkeypatch,
+):
+    """Unset allowlists or unallowlisted audio buckets block TTS and GCS calls."""
+    monkeypatch.delenv("ALLOWED_PROJECT_IDS", raising=False)
+    monkeypatch.delenv("ALLOWED_BUCKETS", raising=False)
+    base_project = {
+        "project_id": "test-project",
+        "location": "us-central1",
+        "buckets": {
+            "metadata": "test-metadata-bucket",
+            "transcripts": "test-transcript-bucket",
+            "audios": "test-project-attacker-audio",
+        },
+        "generation_profile": {
+            "theme": "test-theme",
+            "max_conversations_per_run": {"audio": 2},
+        },
+        "environments": ["prod"],
+    }
+    mock_import_config.return_value = [json.dumps({"projects": [base_project]})]
+
+    assert main.runner(None) == "0 conversations generated"
+    mock_audio_generator.assert_not_called()
+    mock_gcs.assert_not_called()
+    mock_generator.assert_not_called()
+    mock_ingestion.assert_not_called()
+
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project")
+    monkeypatch.setenv(
+        "ALLOWED_BUCKETS", "test-metadata-bucket,test-transcript-bucket"
+    )
+    assert main.runner(None) == "0 conversations generated"
+    mock_audio_generator.assert_not_called()
+    mock_gcs.assert_not_called()
+
+
+@patch("cxidk.workflow.demo_artifacts.runners.human_voice.main.storage.Gcs")
+def test_validate_project_rejects_traversal_and_wrong_bucket_owner(
+    mock_gcs, monkeypatch
+):
+    """Path traversal in location or bucket ownership mismatch raises ValueError."""
+    monkeypatch.setenv("ALLOWED_PROJECT_IDS", "test-project")
+    monkeypatch.setenv(
+        "ALLOWED_BUCKETS",
+        "test-metadata-bucket,test-transcript-bucket,test-audio-bucket",
+    )
+    bad_project = {
+        "project_id": "test-project",
+        "location": "us-central1/../evil",
+        "buckets": {
+            "metadata": "test-metadata-bucket",
+            "transcripts": "test-transcript-bucket",
+            "audios": "test-audio-bucket",
+        },
+        "generation_profile": {
+            "theme": "test-theme",
+            "max_conversations_per_run": {"audio": 1},
+        },
+        "environments": ["prod"],
+    }
+    with pytest.raises(ValueError):
+        main._validate_project(bad_project)  # pylint: disable=protected-access
+
+    monkeypatch.setenv("ALLOWED_PROJECT_NUMBERS", "12345678")
+    fake_meta = MagicMock()
+    fake_meta.project_number = 87654321
+    mock_gcs.return_value.client.get_bucket.return_value = fake_meta
+    bad_project["location"] = "us-central1"
+    with pytest.raises(ValueError, match="allowlisted project number"):
+        main._validate_project(bad_project)  # pylint: disable=protected-access

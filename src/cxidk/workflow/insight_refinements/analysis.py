@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Batch Analysis Logic for QAI Optimization Framework.
 
@@ -6,16 +19,40 @@ This module provides classes and functions for performing batch analysis
 on CCAI conversations and exporting the results to BigQuery.
 """
 
+import re
 from typing import Dict, List, Optional
 
 import pandas as pd
 from google.cloud import bigquery
 from cxidk.workflow.insight_refinements.schemas.input import BatchAnalysisInput
 from cxidk.workflow.insight_refinements.utils import qai_logger, get_bq_client
-from src.wrapper.insights import Analysis, Annotators
+from cxidk.wrapper.insights import Analysis, Annotators
+
+_BQ_PART_RE = re.compile(r"^[a-zA-Z0-9_-]{1,128}$")
+_BQ_COL_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]{0,127}$")
 
 
-def _annotator_dict_to_enum_list(annotator_selector: Optional[Dict[str, bool]]) -> List[Annotators]:
+def validate_bq_identifier(
+    value: str, field_name: str, *, is_column: bool = False
+) -> str:
+    """Validates a BigQuery project/dataset/table or column identifier."""
+    pattern = _BQ_COL_RE if is_column else _BQ_PART_RE
+    if not isinstance(value, str) or not pattern.match(value):
+        raise ValueError(f"Unsafe BigQuery {field_name} identifier: {value!r}")
+    return value
+
+
+def format_bq_table_ref(project_id: str, dataset_id: str, table_id: str) -> str:
+    """Validates and formats a `project.dataset.table` BigQuery reference."""
+    safe_proj = validate_bq_identifier(project_id, "project_id")
+    safe_ds = validate_bq_identifier(dataset_id, "dataset_id")
+    safe_tbl = validate_bq_identifier(table_id, "table_id")
+    return f"{safe_proj}.{safe_ds}.{safe_tbl}"
+
+
+def _annotator_dict_to_enum_list(
+    annotator_selector: Optional[Dict[str, bool]]
+) -> List[Annotators]:
     """
     Translates the pipeline's boolean dictionary into the Devkit's Annotators Enum list.
     """
@@ -36,7 +73,7 @@ def _annotator_dict_to_enum_list(annotator_selector: Optional[Dict[str, bool]]) 
         "run_sentiment_annotator",
         "run_phrase_matcher_annotator",
         "run_silence_annotator",
-        "run_interruption_annotator"
+        "run_interruption_annotator",
     ]
     if any(annotator_selector.get(k) for k in insights_keys):
         selected.append(Annotators.INSIGHTS)
@@ -61,7 +98,10 @@ class BigQueryOperator:
         self.client = get_bq_client(config)
 
     def load_dataframe_to_staging(
-        self, df: pd.DataFrame, table_id: str, write_disposition: str = "WRITE_TRUNCATE"
+        self,
+        df: pd.DataFrame,
+        table_id: str,
+        write_disposition: str = "WRITE_TRUNCATE",
     ):
         """
         Loads a Pandas DataFrame into a BigQuery staging table.
@@ -71,7 +111,9 @@ class BigQueryOperator:
             table_id (str): The staging table ID.
             write_disposition (str): The BQ write disposition (default: WRITE_TRUNCATE).
         """
-        full_table_id = f"{self.project_id}.{self.dataset_id}.{table_id}"
+        full_table_id = format_bq_table_ref(
+            self.project_id, self.dataset_id, table_id
+        )
         job_config = bigquery.LoadJobConfig(write_disposition=write_disposition)
 
         job = self.client.load_table_from_dataframe(
@@ -98,13 +140,27 @@ class BigQueryOperator:
             merge_keys (List[str]): Columns to use for matching.
             update_columns (List[str]): Columns to update on match.
         """
-        full_staging = f"{self.project_id}.{self.dataset_id}.{staging_table}"
-        full_main = f"{self.project_id}.{self.dataset_id}.{main_table}"
+        if not merge_keys or not update_columns:
+            raise ValueError("merge_keys and update_columns must be non-empty.")
+        full_staging = format_bq_table_ref(
+            self.project_id, self.dataset_id, staging_table
+        )
+        full_main = format_bq_table_ref(
+            self.project_id, self.dataset_id, main_table
+        )
+        safe_keys = [
+            validate_bq_identifier(k, "merge_key", is_column=True)
+            for k in merge_keys
+        ]
+        safe_cols = [
+            validate_bq_identifier(c, "update_column", is_column=True)
+            for c in update_columns
+        ]
 
-        on_clause = " AND ".join([f"T.{k} = S.{k}" for k in merge_keys])
-        update_set = ", ".join([f"{c} = S.{c}" for c in update_columns])
-        insert_cols = ", ".join(update_columns + merge_keys)
-        insert_vals = ", ".join([f"S.{c}" for c in update_columns + merge_keys])
+        on_clause = " AND ".join([f"T.{k} = S.{k}" for k in safe_keys])
+        update_set = ", ".join([f"{c} = S.{c}" for c in safe_cols])
+        insert_cols = ", ".join(safe_cols + safe_keys)
+        insert_vals = ", ".join([f"S.{c}" for c in safe_cols + safe_keys])
 
         sql = f"""
         MERGE `{full_main}` T
@@ -161,7 +217,14 @@ def run_batch_analysis(config: BatchAnalysisInput):
             analysis_percentage=float(config.analysis.analysis_percentage),
             analysis_filter=config.analysis.filter
         )
-        qai_logger.log("Bulk Analysis Operation triggered", operation_name=op.name)
+        # `analyzer.bulk()` returns a `google.api_core.operation.Operation`; the LRO
+        # resource name lives on the wrapped protobuf, exposed via `.operation`.
+        # pylint mis-resolves the wrapper's stale `operations_pb2.Operation` annotation,
+        # whose members are generated dynamically, hence the narrow disable.
+        qai_logger.log(
+            "Bulk Analysis Operation triggered",
+            operation_name=op.operation.name,  # pylint: disable=no-member
+        )
 
         # Wait for LRO natively
         qai_logger.log("Waiting for operation to complete...")
@@ -169,7 +232,9 @@ def run_batch_analysis(config: BatchAnalysisInput):
 
         return [{"status": "success", "operation_metadata": "Completed successfully"}]
 
-    except Exception as e:
+    # This is the pipeline's top-level boundary: every failure must be surfaced as a
+    # structured 'failed' result rather than propagating to the caller.
+    except Exception as e:  # pylint: disable=broad-exception-caught
         qai_logger.log(
             "Analysis failed",
             severity="ERROR",

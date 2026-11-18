@@ -1,9 +1,8 @@
-# Conversational Insights Development Kit (cxidk)
+# Conversational Insights DevKit (`cxidk`)
 
-This package contains the core logic, wrappers, and workflows for the Conversational Insights Development Kit.
+`cxidk` is organized into four bottom-up architectural layers:
 
-## Structure
-
-- **[Core](core/README.md)**: High-level building blocks and base classes.
-- **[Wrapper](wrapper/README.md)**: Simplified wrappers around Google Cloud SDKs.
-- **[Workflow](workflow/README.md)**: Specialized workflows for common tasks like transcript formatting and role recognition.
+1. **[`core/`](core/README.md)**: Authentication (`Auth`), regional endpoint configuration (`Config`), resilient HTTPS `Request` handling, `CxContext`, and typed `CxidkError` exceptions.
+2. **[`wrapper/`](wrapper/README.md)**: Thin, Pythonic clients around Google Cloud SDKs (`insights/`, `speech.py`, `sensitive_data_protection.py`, `storage.py`, `vertex.py`, `agents.py`, `iam.py`, `sheets.py`).
+3. **[`workflow/`](workflow/README.md)**: Higher-level domain pipelines (`ops.py` configuration promotion, `format.py` vendor transcript conversion, `role_recognizer.py`, `views_manager.py`, and `insight_refinements/`).
+4. **[`ai/`](ai/README.md)**: Agentic & LLM integration layer (`tools/`, `mcp/`, `adk/`, `skills/`, and `policy.py`).

@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Shared Utilities for QAI Optimization Framework.
 
@@ -25,8 +38,6 @@ if TYPE_CHECKING:
     from google import genai
 
 
-# Configure standard logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Quota/Retry Defaults from GCC Example
@@ -34,28 +45,37 @@ MAX_RETRIES = 5
 RETRY_DELAY = 2.0
 
 
-def get_bq_client(config) -> bigquery.Client:
+def get_bq_client(config, credentials=None) -> bigquery.Client:
     """Centralized BigQuery client factory."""
-    from google.cloud import bigquery
+    # Imported lazily so that importing this module does not require the optional
+    # google-cloud-bigquery dependency (see the TYPE_CHECKING block above).
+    from google.cloud import bigquery  # pylint: disable=import-outside-toplevel
 
     project_id = config.bigquery.project_id or config.gcp.project_id
-    return bigquery.Client(project=project_id)
+    return bigquery.Client(project=project_id, credentials=credentials)
 
 
-def get_storage_client(config) -> storage.Client:
+def get_storage_client(config, credentials=None) -> storage.Client:
     """Centralized Cloud Storage client factory."""
-    from google.cloud import storage
+    # Imported lazily so that importing this module does not require the optional
+    # google-cloud-storage dependency (see the TYPE_CHECKING block above).
+    from google.cloud import storage  # pylint: disable=import-outside-toplevel
 
     project_id = config.bigquery.project_id or config.gcp.project_id
-    return storage.Client(project=project_id)
+    return storage.Client(project=project_id, credentials=credentials)
 
 
-def get_gemini_client(config) -> genai.Client:
+def get_gemini_client(config, credentials=None) -> genai.Client:
     """Centralized Gemini client factory."""
-    from google import genai
+    # Imported lazily so that importing this module does not require the optional
+    # google-genai dependency (see the TYPE_CHECKING block above).
+    from google import genai  # pylint: disable=import-outside-toplevel
 
     return genai.Client(
-        vertexai=True, project=config.gcp.project_id, location=config.llm.location_id
+        vertexai=True,
+        project=config.gcp.project_id,
+        location=config.llm.location_id,
+        credentials=credentials,
     )
 
 
@@ -69,7 +89,9 @@ def handle_api_quota(
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            from google.genai.errors import APIError
+            # Imported lazily so that importing this module does not require the optional
+            # google-genai dependency (see the TYPE_CHECKING block above).
+            from google.genai.errors import APIError  # pylint: disable=import-outside-toplevel
             for i in range(max_retries):
                 try:
                     return func(*args, **kwargs)
@@ -85,15 +107,19 @@ def handle_api_quota(
 
                     if i == max_retries - 1:
                         logger.error(
-                            f"API call failed after {max_retries} attempts: {str(e)}"
+                            "API call failed after %s attempts: %s", max_retries, str(e)
                         )
                         raise e
 
                     # Exponential backoff with jitter exactly as in GCC example
                     exponential_delay = initial_delay * (2**i + random.random())
                     logger.warning(
-                        f"API returned rate limit/transient error: {str(e)}. "
-                        f"Waiting {exponential_delay:.2f} seconds and trying again... (Attempt {i + 1}/{max_retries})"
+                        "API returned rate limit/transient error: %s. "
+                        "Waiting %.2f seconds and trying again... (Attempt %s/%s)",
+                        str(e),
+                        exponential_delay,
+                        i + 1,
+                        max_retries,
                     )
                     time.sleep(exponential_delay)
             # This part should technically never be reached due to the raise in the loop
@@ -120,11 +146,17 @@ class StructuredLogger:
         self.name = name
         self.cloud_logger = None
         try:
-            from google.cloud import logging as cloud_logging
+            # Imported lazily: Cloud Logging is optional, and the import itself is part
+            # of the capability probe below.
+            from google.cloud import (  # pylint: disable=import-outside-toplevel
+                logging as cloud_logging,
+            )
 
             client = cloud_logging.Client()
             self.cloud_logger = client.logger(name)
-        except Exception:
+        # The probe must never fail the caller: a missing package, missing credentials
+        # or any transport error simply means we fall back to standard logging.
+        except Exception:  # pylint: disable=broad-exception-caught
             # Fallback or local development
             pass
 

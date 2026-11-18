@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Granular Topic Refinement Pipeline.
 
@@ -11,10 +24,13 @@ This script orchestrates the end-to-end flow:
 import logging
 import argparse
 import sys
-import pandas as pd
 from typing import Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import pandas as pd
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+
 from cxidk.workflow.insight_refinements.schemas.input import (
     BatchAnalysisInput,
     GCPConfig,
@@ -25,15 +41,7 @@ from cxidk.workflow.insight_refinements.schemas.input import (
 )
 from cxidk.workflow.insight_refinements.bq_client import TopicBQClient
 from cxidk.workflow.insight_refinements.topic_refinement import TopicRefiner
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 
@@ -73,6 +81,12 @@ class RefinementSettings(BaseSettings):
 
 
 def parse_args():
+    """Parses command-line arguments for the topic refinement pipeline.
+
+    Returns:
+        argparse.Namespace: The parsed arguments, containing the ``batch_size``
+        of conversations to process in this run.
+    """
     parser = argparse.ArgumentParser(
         description="Run granular topic refinement pipeline."
     )
@@ -89,12 +103,21 @@ def run_pipeline(batch_size: int = 100):
     """Executes the refinement pipeline."""
     # 1. Load Settings
     try:
-        settings = RefinementSettings()
+        # pydantic-settings populates every required field from the environment
+        # (and the .env file) at runtime. mypy only sees the dataclass-style
+        # __init__ synthesised from the field annotations, so it wrongly reports
+        # the env-provided fields as missing arguments.
+        settings = RefinementSettings()  # type: ignore[call-arg]
+    # pylint: disable-next=broad-exception-caught  # logs any config error, then re-raises unchanged
     except Exception as e:
-        logger.error(f"Missing required configuration: {e}")
+        logger.error("Missing required configuration: %s", e)
         raise e
 
     # 2. Construct internal config
+    llm_config = LLMConfig(
+        model_name=settings.llm_model_name,
+        location_id=settings.llm_location_id,
+    )
     config = BatchAnalysisInput(
         gcp=GCPConfig(
             project_id=settings.gcp_project_id,
@@ -107,10 +130,7 @@ def run_pipeline(batch_size: int = 100):
             insights_endpoint=settings.ccai_insights_endpoint,
             feedback_regionalization=settings.ccai_feedback_regionalization,
         ),
-        llm=LLMConfig(
-            model_name=settings.llm_model_name,
-            location_id=settings.llm_location_id,
-        ),
+        llm=llm_config,
         bigquery=BigQueryConfig(
             project_id=settings.bq_project_id,
             dataset_id=settings.bq_dataset_id,
@@ -141,7 +161,7 @@ def run_pipeline(batch_size: int = 100):
     results = []
     audit_logs = []
 
-    logger.info(f"Processing {len(new_records)} records...")
+    logger.info("Processing %d records...", len(new_records))
 
     def process_row(row):
         try:
@@ -153,12 +173,15 @@ def run_pipeline(batch_size: int = 100):
                 formatted_transcript=row["formatted_transcript"],
             )
             return result.model_dump(), audit.model_dump()
+        # pylint: disable-next=broad-exception-caught  # one bad row must not abort the whole batch
         except Exception as e:
-            logger.error(f"Failed to refine conversation {row['conversation_id']}: {e}")
+            logger.error(
+                "Failed to refine conversation %s: %s", row["conversation_id"], e
+            )
             return None, None
 
     # Use ThreadPoolExecutor for concurrent API calls to Gemini
-    max_workers = config.llm.max_concurrent_calls
+    max_workers = llm_config.max_concurrent_calls
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
             executor.submit(process_row, row) for _, row in new_records.iterrows()
@@ -183,9 +206,22 @@ def run_pipeline(batch_size: int = 100):
 
 
 def main():
+    """Parses the CLI arguments and runs the refinement pipeline.
+
+    Exits with status 1 if the pipeline raises, after logging the traceback.
+    """
+    load_dotenv()
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     args = parse_args()
     try:
         run_pipeline(batch_size=args.batch_size)
+    # pylint: disable-next=broad-exception-caught  # CLI boundary: any failure must exit(1)
     except Exception as e:
         logger.error(e, exc_info=True)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,17 @@
-# Copyright 2026 Google. This software is provided as-is, without warranty or representation for any use or purpose. Your use of it is subject to your agreement with Google.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Bulk Feedback Logic for QAI Optimization Framework.
 
@@ -11,7 +24,11 @@ import csv
 import time
 from typing import Dict, Any
 from google.cloud import contact_center_insights_v1
-from cxidk.workflow.insight_refinements.schemas.input import BatchAnalysisInput, FeedbackCSVRow
+from cxidk.workflow.insight_refinements import utils
+from cxidk.workflow.insight_refinements.schemas.input import (
+    BatchAnalysisInput,
+    FeedbackCSVRow,
+)
 from cxidk.workflow.insight_refinements.utils import handle_api_quota, qai_logger
 
 
@@ -20,33 +37,45 @@ class BulkFeedbackManager:
     Manager for bulk feedback label operations.
     """
 
-    def __init__(self, config: BatchAnalysisInput):
+    def __init__(self, config: BatchAnalysisInput, auth=None):
         """
         Initializes the BulkFeedbackManager.
 
         Args:
             config (BatchAnalysisInput): The root configuration object.
+            auth: Optional `cxidk.core.base.Auth` instance for explicit credentials.
         """
+        from cxidk.core import base as core_base  # pylint: disable=import-outside-toplevel
+
         self.project_id = config.gcp.project_id
         self.location_id = config.gcp.location_id
         self.parent = f"projects/{self.project_id}/locations/{self.location_id}"
+        self.auth = auth
 
         # Regional Endpoint Logic
         if config.ccai.insights_endpoint:
+            if not core_base.is_trusted_google_host(config.ccai.insights_endpoint):
+                raise ValueError(
+                    f"Untrusted insights_endpoint: {config.ccai.insights_endpoint!r}"
+                )
             endpoint = config.ccai.insights_endpoint
         elif self.location_id == "us-central1":
             endpoint = "contactcenterinsights.googleapis.com"
         else:
-            endpoint = f"{self.location_id}-contactcenterinsights.googleapis.com"
+            endpoint = core_base.Config().insights_host(self.location_id)
 
         # Initialize clients
+        creds = self.auth.creds if self.auth is not None else None
         client_options = {"api_endpoint": endpoint}
         self.client = contact_center_insights_v1.ContactCenterInsightsClient(
-            client_options=client_options
+            credentials=creds,
+            client_options=client_options,
         )
-        from cxidk.workflow.insight_refinements.utils import get_storage_client
-
-        self.storage_client = get_storage_client(config)
+        self.storage_client = (
+            utils.get_storage_client(config, credentials=creds)
+            if creds is not None
+            else utils.get_storage_client(config)
+        )
 
     @handle_api_quota()
     def upload_feedback_labels(
@@ -66,11 +95,12 @@ class BulkFeedbackManager:
             "Starting bulk upload", gcs_uri=gcs_uri, validate_only=validate_only
         )
 
-        gcs_source = contact_center_insights_v1.GcsSource(
-            object_uri=gcs_uri, format_=contact_center_insights_v1.GcsSource.Format.JSON
+        upload_request_cls = contact_center_insights_v1.BulkUploadFeedbackLabelsRequest
+        gcs_source = upload_request_cls.GcsSource(
+            object_uri=gcs_uri, format_=upload_request_cls.GcsSource.Format.JSON
         )
 
-        request = contact_center_insights_v1.BulkUploadFeedbackLabelsRequest(
+        request = upload_request_cls(
             parent=self.parent, gcs_source=gcs_source, validate_only=validate_only
         )
 
@@ -109,12 +139,15 @@ class BulkFeedbackManager:
         """
         qai_logger.log("Starting bulk download", gcs_uri=gcs_uri)
 
-        gcs_destination = contact_center_insights_v1.GcsDestination(
+        download_request_cls = (
+            contact_center_insights_v1.BulkDownloadFeedbackLabelsRequest
+        )
+        gcs_destination = download_request_cls.GcsDestination(
             object_uri=gcs_uri,
-            format_=contact_center_insights_v1.GcsDestination.Format.JSON,
+            format_=download_request_cls.GcsDestination.Format.JSON,
         )
 
-        request = contact_center_insights_v1.BulkDownloadFeedbackLabelsRequest(
+        request = download_request_cls(
             parent=self.parent,
             gcs_destination=gcs_destination,
             filter=filter_expression,
@@ -141,32 +174,35 @@ class BulkFeedbackManager:
         """
         # Validate using Pydantic
         # Note: We handle the mapping from string "score" to float/int here if needed
-        feedback_row = FeedbackCSVRow(**row)
+        feedback_row = FeedbackCSVRow.model_validate(row)
 
-        label_obj = {
+        qa_answer_label: Dict[str, Any] = {
+            "key": feedback_row.question_id,
+            "qa_answer_rationale": {"rationale": feedback_row.rationale}
+            if feedback_row.rationale
+            else None,
+        }
+        label_obj: Dict[str, Any] = {
             "labeled_resource": f"{self.parent}/conversations/{feedback_row.conversation_id}",
-            "qa_answer_label": {
-                "key": feedback_row.question_id,
-                "qa_answer_rationale": {"rationale": feedback_row.rationale}
-                if feedback_row.rationale
-                else None,
-            },
+            "qa_answer_label": qa_answer_label,
         }
 
         # Determine value type (simplified logic, can be expanded)
         val = feedback_row.answer_value
-        if val.lower() in ["yes", "true"]:
-            label_obj["qa_answer_label"]["bool_value"] = True
-        elif val.lower() in ["no", "false"]:
-            label_obj["qa_answer_label"]["bool_value"] = False
-        elif val.lower() in ["na", "n/a"]:
-            label_obj["qa_answer_label"]["na_value"] = True
+        # pylint: disable-next=no-member  # pydantic Field() default inferred as FieldInfo, not str
+        val_lower = val.lower()
+        if val_lower in ["yes", "true"]:
+            qa_answer_label["bool_value"] = True
+        elif val_lower in ["no", "false"]:
+            qa_answer_label["bool_value"] = False
+        elif val_lower in ["na", "n/a"]:
+            qa_answer_label["na_value"] = True
         else:
             # Default to string value
-            label_obj["qa_answer_label"]["string_value"] = val
+            qa_answer_label["string_value"] = val
 
         if feedback_row.score is not None:
-            label_obj["qa_answer_label"]["score"] = feedback_row.score
+            qa_answer_label["score"] = feedback_row.score
 
         return label_obj
 
@@ -188,6 +224,8 @@ class BulkFeedbackManager:
                 try:
                     label_json = self._csv_row_to_json_label(row)
                     jsonl_lines.append(json.dumps(label_json))
+                # Row-level failures must skip the row, not abort the whole batch.
+                # pylint: disable-next=broad-exception-caught
                 except Exception as e:
                     qai_logger.log(
                         f"Skipping invalid row: {row}", severity="WARNING", error=str(e)

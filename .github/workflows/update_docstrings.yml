@@ -1,0 +1,51 @@
+# This GitHub Actions workflow automatically updates Python docstrings
+# using the Gemini API and commits the changes back to the repository.
+
+name: 'Docs - Update Docstrings'
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: write # Grants permission to write to the repository (for committing changes)
+
+jobs:
+  update_docstrings:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12' # Match your project's Python version
+
+      - name: 'Install dependencies'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install "google-genai>=2.30.0,<3.0.0"
+
+      - name: 'Run docstring update script'
+        run: python .github/scripts/update_docstrings.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: 'Configure Git'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 'Commit and push changes'
+        run: |
+          # Check if there are any changes
+          if ! git diff --quiet; then
+            git add .
+            git commit -m "docs: Auto-update docstrings with Gemini"
+            git push
+            echo "Docstring changes have been committed and pushed."
+          else
+            echo "No docstring changes to commit."
+          fi

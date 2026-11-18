@@ -1,0 +1,44 @@
+{
+  "name": "conversational-insights-devkit",
+  "version": "2.0.0",
+  "description": "Google Cloud Conversational Insights (CCAI Insights) MCP tools, skills, and guarded config promotion.",
+  "contextFileName": "GEMINI_EXTENSION.md",
+  "mcpServers": {
+    "cxidk": {
+      "command": "uvx",
+      "args": ["--from", "cxidk[mcp]", "cxidk-mcp", "--transport", "stdio"]
+    }
+  },
+  "settings": [
+    {
+      "name": "GCP Project ID",
+      "description": "Default Google Cloud project ID for Conversational Insights (CCAI Insights).",
+      "envVar": "CXIDK_PROJECT_ID",
+      "sensitive": false
+    },
+    {
+      "name": "Insights Location",
+      "description": "Regional endpoint location (e.g., us-central1, europe-west1, global).",
+      "envVar": "CXIDK_LOCATION",
+      "sensitive": false
+    },
+    {
+      "name": "Allowed GCP Projects",
+      "description": "Optional comma-separated allowlist of GCP project IDs permitted for tool calls.",
+      "envVar": "CXIDK_ALLOWED_PROJECTS",
+      "sensitive": false
+    },
+    {
+      "name": "Allow Guarded Writes",
+      "description": "Set to 'true' to enable confirmation-gated export, import, ingestion, and bulk analysis tools.",
+      "envVar": "CXIDK_ALLOW_WRITES",
+      "sensitive": false
+    },
+    {
+      "name": "Transcript Privacy Mode",
+      "description": "Transcript redaction mode: 'redacted', 'omit', or 'full'.",
+      "envVar": "CXIDK_TRANSCRIPT_MODE",
+      "sensitive": false
+    }
+  ]
+}

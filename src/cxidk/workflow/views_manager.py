@@ -17,7 +17,7 @@
 import os
 import enum
 import logging
-from typing import Optional
+from typing import Any, Dict, Optional
 import pandas as pd
 from google.api_core import exceptions
 from cxidk.wrapper import iam
@@ -109,18 +109,18 @@ class Manager:
             view_set_id=view_set_id
         )
 
-        if list_views is not None and 'authorizedViews' in list_views:
-            for view in list_views['authorizedViews']:
-                if view['displayName'] == display_name:
-                    return os.path.basename(view['name'])
+        for view in (list_views or {}).get("authorizedViews", []):
+            if view['displayName'] == display_name:
+                return os.path.basename(view['name'])
 
         view = self.insights.create_view(
             authorized_view_set_id=view_set_id,
             display_name=display_name,
             conversation_filter=f'agent_id = "{agent_id}"',
         )
-        if view and "name" in view:
-            return os.path.basename(view["name"])
+        view_name = (view or {}).get("name")
+        if view_name:
+            return os.path.basename(str(view_name))
 
         logging.error("Failed to create view for agent_id: %s", agent_id)
         return None
@@ -135,7 +135,7 @@ class Manager:
         Returns:
             The ID of the view set, or None if creation/retrieval fails.
         """
-        view_set = None
+        view_set: Optional[Dict[str, Any]] = None
         if self.view_set_id is not None:
             view_set = self.insights.get_view_set(view_set_id=self.view_set_id)
 
@@ -144,9 +144,9 @@ class Manager:
                 authorized_view_set_name="default-viewer"
             )
 
-        if view_set and "name" in view_set:
-            name_string = view_set["name"]
-            return os.path.basename(name_string)
+        name_string = (view_set or {}).get("name")
+        if name_string:
+            return os.path.basename(str(name_string))
 
         logging.error("Failed to create or retrieve authorized view set.")
         return None

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "stats-before-list",
+    "user_prompt": "How many phone calls came in last week and what were the top issues?",
+    "expected_first_tool": "insights_calculate_stats",
+    "forbidden_tools": ["insights_bulk_analyze", "config_apply_import"]
+  },
+  {
+    "id": "metrics-time-series",
+    "user_prompt": "Show me daily conversation volume sliced by agent team for January 2025.",
+    "expected_first_tool": "insights_query_metrics",
+    "forbidden_tools": ["config_export_bundle", "insights_ingest_conversation"]
+  },
+  {
+    "id": "single-conversation-drilldown",
+    "user_prompt": "Fetch conversation conv-9821 with PII redacted and inspect its QA scorecard answers.",
+    "expected_first_tool": "insights_get_conversation",
+    "expected_followup_tool": "insights_list_analyses",
+    "forbidden_tools": ["insights_bulk_analyze"]
+  },
+  {
+    "id": "aws-transcript-onboarding",
+    "user_prompt": "Validate this AWS Transcribe JSON payload and convert it to CCAI Insights format.",
+    "expected_first_tool": "transcript_validate",
+    "expected_followup_tool": "transcript_convert",
+    "forbidden_tools": ["insights_ingest_conversation"]
+  },
+  {
+    "id": "config-promotion-plan-first",
+    "user_prompt": "Promote the config bundle gs://cx-bundles/rel-1.json into prod-insights-01.",
+    "expected_first_tool": "config_plan_import",
+    "requires_confirmation_before": "config_apply_import",
+    "forbidden_unplanned_tools": ["config_apply_import"]
+  },
+  {
+    "id": "lro-poll-status",
+    "user_prompt": "Check whether operation projects/demo-proj-01/locations/us-central1/operations/op-551 finished.",
+    "expected_first_tool": "insights_get_operation",
+    "forbidden_tools": ["insights_bulk_analyze"]
+  },
+  {
+    "id": "scorecard-definition-inspection",
+    "user_prompt": "Show me the questions, answer choices, and weights on QA scorecard sc-4411.",
+    "expected_first_tool": "insights_get_scorecard",
+    "forbidden_tools": ["config_export_bundle", "insights_bulk_analyze"]
+  },
+  {
+    "id": "scorecard-revision-history",
+    "user_prompt": "Which revisions exist for scorecard sc-4411 and which one is current?",
+    "expected_first_tool": "insights_list_scorecard_revisions",
+    "expected_followup_tool": "insights_get_scorecard",
+    "forbidden_tools": ["config_apply_import"]
+  }
+]

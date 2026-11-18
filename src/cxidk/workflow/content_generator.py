@@ -14,13 +14,12 @@
 
 """Module to generate content for the ingestion pipeline"""
 
+from enum import StrEnum
 import json
 import pathlib
 import random
 import datetime
 from typing import Any, Dict, List, Optional
-
-from strenum import StrEnum
 
 from cxidk.core import base
 from cxidk.wrapper import vertex

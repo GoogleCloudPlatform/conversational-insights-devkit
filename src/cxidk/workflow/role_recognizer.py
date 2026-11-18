@@ -12,30 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Role recognition class for conversation transcripts. """
+"""Role recognition class for conversation transcripts."""
 
+import copy
 import json
-import pathlib
-from typing import Any, Dict
-from vertexai.generative_models import GenerationConfig, GenerativeModel
+import os
+from typing import Any, Dict, Optional
+
+from cxidk.core import base
+from cxidk.wrapper import vertex
 
 
 class RoleRecognizer:
     """Identifies speaker roles in a conversation transcript using a generative model.
 
-    This class uses a large language model (like Gemini) to analyze a
-    conversation transcript and assign either an 'AGENT' or 'CUSTOMER' role
-    to each utterance. It is designed to handle standard customer service
-    interactions as well as agent-to-agent conversations by differentiating
-    the primary support provider from the recipient.
+    This class uses a large language model (Gemini via `cxidk.wrapper.vertex.Generator`
+    and `google-genai`) to analyze a conversation transcript and assign either an
+    'AGENT' or 'CUSTOMER' role to each utterance. It is designed to handle standard
+    customer service interactions as well as agent-to-agent conversations by
+    differentiating the primary support provider from the recipient.
 
     Attributes:
-        model: An instance of the Vertex AI GenerativeModel.
+        generator: An instance of `cxidk.wrapper.vertex.Generator`.
     """
 
-    _SCHEMA_DIR = pathlib.Path(__file__).parent.parent / "common/utils/schemas/"
-    _RESPONSE_MIME_TYPE = "application/json"
-    _TEMPERATURE = 0
+    _RESPONSE_MIME_TYPE = vertex.MimeTypes.APPLICATION_JSON
+    _TEMPERATURE = 0.0
     _TOP_P = 0.95
     _TOP_K = 40
     _DEFAULT_PROMPT = """
@@ -100,26 +102,36 @@ class RoleRecognizer:
                             "type": "string",
                             "enum": [
                                 "AGENT",
-                                "CUSTOMER"
-                            ]
+                                "CUSTOMER",
+                            ],
                         },
                         "uid": {
-                            "type": "integer"
-                        }
+                            "type": "integer",
+                        },
                     },
                     "required": [
                         "role",
-                        "uid"
-                    ]
-                }
+                        "uid",
+                    ],
+                },
             }
         },
         "required": [
-            "predictions"
-        ]
+            "predictions",
+        ],
     }
 
-    def __init__(self, model_name: str = "gemini-2.5-pro", prompt: str = ""):
+    def __init__(
+        self,
+        model_name: str = "gemini-2.5-pro",
+        prompt: str = "",
+        *,
+        project_id: Optional[str] = None,
+        location: Optional[str] = None,
+        auth: Optional[base.Auth] = None,
+        config: Optional[base.Config] = None,
+        generator: Optional[vertex.Generator] = None,
+    ):
         """Initializes the RoleRecognizer.
 
         Args:
@@ -127,42 +139,87 @@ class RoleRecognizer:
                 "gemini-2.5-pro").
             prompt: An optional custom prompt to override the default role
                 recognition instructions for the model.
+            project_id: Optional GCP project ID (falls back to `CXIDK_PROJECT_ID`
+                or `GOOGLE_CLOUD_PROJECT`).
+            location: Optional GCP location (falls back to `CXIDK_LOCATION` or
+                `us-central1`).
+            auth: Optional `base.Auth` credentials object.
+            config: Optional `base.Config` object.
+            generator: Optional pre-configured `vertex.Generator` instance.
         """
         self.model_name = model_name
-        self.prompt = prompt
+        self.prompt = prompt or self._DEFAULT_PROMPT
 
-        self.model = GenerativeModel(model_name=self.model_name)
-        self.generation_config = GenerationConfig(
-            temperature=self._TEMPERATURE,
-            top_p=self._TOP_P,
-            top_k=self._TOP_K,
-            response_mime_type=self._RESPONSE_MIME_TYPE,
-            response_schema=self._RESPONSE_SCHEMA,
+        resolved_project = (
+            project_id
+            or os.environ.get("CXIDK_PROJECT_ID")
+            or os.environ.get("GOOGLE_CLOUD_PROJECT")
+            or ""
+        )
+        resolved_location = (
+            location or os.environ.get("CXIDK_LOCATION") or "us-central1"
         )
 
-        if not self.prompt:
-            self.prompt = self._DEFAULT_PROMPT
+        self.generator = generator or vertex.Generator(
+            project_id=resolved_project,
+            location=resolved_location,
+            version=self.model_name,
+            auth=auth,
+            config=config,
+        )
 
     def predict_roles(self, conversation: Dict[str, Any]) -> Dict[str, Any]:
         """Predicts roles in a conversation transcript.
-        
+
         Args:
             conversation: A dictionary representing the conversation, typically
                 containing a list of utterances or text segments.
-        
+
         Returns:
             A dictionary containing the role predictions from the model, where
             each prediction maps a role to an utterance ID.
         """
-        response = self.model.generate_content(
-            self.prompt.format(conversation=conversation),
-            generation_config=self.generation_config,
-            stream=False,
+        response_text = self.generator.content(
+            prompt=self.prompt.format(conversation=conversation),
+            temperature=self._TEMPERATURE,
+            top_p=self._TOP_P,
+            top_k=self._TOP_K,
+            output_mime_type=self._RESPONSE_MIME_TYPE,
+            output_schema=self._RESPONSE_SCHEMA,
         )
-        return json.loads(response.text)
+        return json.loads(response_text)
 
-    def combine(self, conversation: Dict[str, Any], roles: Dict[str, Any]) -> str:
-        """Combines the original transcript with the predicted roles.
+    def combine_dict(
+        self, conversation: Dict[str, Any], roles: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Returns a copy of `conversation` updated with predicted channel tags.
+
+        Assigns channelTag 1 for CUSTOMER and 2 for AGENT on each utterance.
+
+        Args:
+            conversation: The original conversation dictionary.
+            roles: The role prediction dictionary returned by `predict_roles`.
+
+        Returns:
+            Updated conversation dictionary with channel tags applied.
+        """
+        updated = copy.deepcopy(conversation)
+        for index, result in enumerate(updated.get("results", [])):
+            try:
+                predicted_role = roles["predictions"][index]["role"]
+                tag = 2 if predicted_role == "AGENT" else 1
+                result["alternatives"][0]["channelTag"] = tag
+                result["channelTag"] = tag
+            except (IndexError, KeyError):
+                # if error defaults to customer
+                result["alternatives"][0]["channelTag"] = 1
+                result["channelTag"] = 1
+        return updated
+
+    def combine(
+        self, conversation: Dict[str, Any], roles: Dict[str, Any]
+    ) -> str:
+        """Combines the original transcript with the predicted roles as JSON.
 
         This method updates the input conversation dictionary by assigning the
         appropriate channel tag (1 for CUSTOMER, 2 for AGENT) to each utterance
@@ -171,20 +228,11 @@ class RoleRecognizer:
         Args:
             conversation: The original conversation dictionary.
             roles: The role prediction dictionary returned by `predict_roles`.
+
         Returns:
             A JSON string representing the updated conversation with channel tags.
         """
-        for index, result in enumerate(conversation["results"]):
-            try:
-                if roles["predictions"][index]["role"] == "AGENT":
-                    result["alternatives"][0]["channelTag"] = 2
-                    result["channelTag"] = 2
-                if roles["predictions"][index]["role"] == "CUSTOMER":
-                    result["alternatives"][0]["channelTag"] = 1
-                    result["channelTag"] = 1
-            except (IndexError, KeyError):
-                # if error defaults to customer
-                result["alternatives"][0]["channelTag"] = 1
-                result["channelTag"] = 1
-
+        updated = self.combine_dict(conversation, roles)
+        conversation.clear()
+        conversation.update(updated)
         return json.dumps(conversation)
